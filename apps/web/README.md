@@ -1,73 +1,46 @@
-# React + TypeScript + Vite
+# Family Recipes — Web App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Mobile-first React PWA built with Vite, TanStack Router/Query/Form, and Tailwind CSS.
 
-Currently, two official plugins are available:
+## Development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```sh
+bun run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The service worker is **disabled in dev** (`devOptions: { enabled: false }`) so hot-reload works normally.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Production build
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```sh
+bun run build
 ```
+
+Outputs to `dist/`. Includes the service worker (`sw.js`) and the web app manifest (`manifest.webmanifest`).
+
+## PWA icons
+
+Icons are generated from the SVG source at `public/icons/icon.svg` using `@resvg/resvg-js`.
+
+To regenerate after editing the SVG:
+
+```sh
+bun run build:icons
+```
+
+This writes the following files to `public/icons/`:
+
+| File | Size | Purpose |
+|------|------|---------|
+| `icon-192.png` | 192×192 | Standard icon (manifest) |
+| `icon-512.png` | 512×512 | Standard icon (manifest) |
+| `icon-512-maskable.png` | 512×512 | Maskable icon (manifest) — the SVG has ~10% padding so the content stays in the safe zone |
+| `apple-touch-icon.png` | 180×180 | iOS home screen icon |
+
+### iOS install
+
+iOS does not support the `beforeinstallprompt` event so no in-app install button is shown on iOS. To add the app to your home screen on iOS: **Safari → Share → Add to Home Screen**.
+
+## Offline support
+
+The service worker (Workbox, `NetworkFirst`) caches `GET /api/recipes` responses for up to 3 days with a 5-second network timeout, so the recipe list stays usable briefly when offline. Mutations (POST/PUT/DELETE) are never cached.
