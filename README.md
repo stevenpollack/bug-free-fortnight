@@ -161,6 +161,29 @@ The web frontend uses a small console-based logger (`packages/web/src/lib/logger
 
 - In development (`import.meta.env.DEV`), debug-level logs are emitted to the browser console.
 - In production, debug logs are suppressed by default. Set `localStorage.debug = '1'` in the browser console to re-enable them without a rebuild.
+- In production, `warn` and `error` calls are also fire-and-forget POSTed to `/api/log`, where the API re-emits them through the same Pino stream tagged with `source: "web"`. This means client-side errors land in the same persisted log file as server logs, correlated by the surrounding request's `requestId` when one is in flight. Forwarding is skipped entirely in dev to keep the network tab quiet.
+
+### Log persistence
+
+API logs are written to stdout and captured by Docker's `json-file` log driver, which is bounded in `infra/docker/docker-compose.yml` to `max-size: 50m` × `max-file: 5` with `compress: true` — roughly 250 MB of rolling history per service before the oldest file is dropped.
+
+Read recent logs:
+
+```sh
+docker compose -f infra/docker/docker-compose.yml logs app           # all
+docker compose -f infra/docker/docker-compose.yml logs -f app        # follow
+docker compose -f infra/docker/docker-compose.yml logs --since=24h app
+docker compose -f infra/docker/docker-compose.yml logs app | grep <requestId>
+```
+
+**Important caveat:** Docker stores those rotated files under the container's lifecycle, so `docker compose up --build` (the upgrade path documented above) **destroys the previous container's log history** along with the old container. If you want to preserve logs across upgrades, capture them first:
+
+```sh
+docker compose -f infra/docker/docker-compose.yml logs --no-color --timestamps app \
+  > "logs/api-$(date +%Y%m%d-%H%M%S).log"
+```
+
+For long-term retention, multi-host visibility, or richer querying (e.g. once the app moves to a shared K8s cluster), forward logs to an external aggregator such as Grafana Loki or Vector instead of relying on the Docker driver alone.
 
 ### Installing to the home screen (PWA)
 
