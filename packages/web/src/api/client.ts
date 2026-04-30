@@ -303,4 +303,9 @@ export const client = {
       body: JSON.stringify(body),
     });
   },
+
+  // Schemas
+  getRecipeSchema() {
+    return req<Record<string, unknown>>("/schemas/recipe");
+  },
 };

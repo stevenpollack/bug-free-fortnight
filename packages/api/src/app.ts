@@ -9,6 +9,7 @@ import { importRouter } from "./routes/import";
 import { logRouter } from "./routes/log";
 import { mealPlanRouter } from "./routes/mealPlans";
 import { recipeRouter } from "./routes/recipes";
+import { schemaRouter } from "./routes/schemas";
 import { shoppingListRouter } from "./routes/shoppingList";
 import { tagRouter } from "./routes/tags";
 import type { HonoEnv } from "./types";
@@ -49,6 +50,7 @@ export function createApp({ webDistDir }: AppOptions = {}) {
   app.route("/api", logRouter);
   app.route("/api", mealPlanRouter);
   app.route("/api", recipeRouter);
+  app.route("/api", schemaRouter);
   app.route("/api", shoppingListRouter);
   app.route("/api", tagRouter);
 

@@ -221,6 +221,20 @@ export const handlers = [
     return HttpResponse.json({ tags: [] });
   }),
 
+  // Recipe schema
+  http.get("*/api/schemas/recipe", () => {
+    return HttpResponse.json({
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      type: "object",
+      properties: {
+        title: { type: "string", minLength: 1 },
+        ingredients: { type: "array", items: { type: "object" } },
+        instructions: { type: "array", items: { type: "string" } },
+      },
+      required: ["title"],
+    });
+  }),
+
   // Client-side log endpoint
   http.post("*/api/log", () => {
     return new HttpResponse(null, { status: 204 });

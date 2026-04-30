@@ -15,6 +15,7 @@ export const queryKeys = {
   mealPlans: () => ["meal-plans"] as const,
   mealPlan: (id: string) => ["meal-plans", id] as const,
   shoppingList: (planId: string) => ["shopping-list", planId] as const,
+  recipeSchema: () => ["schema", "recipe"] as const,
 };
 
 // ---------------------------------------------------------------------------
@@ -361,5 +362,17 @@ export function useAddShoppingListItem(planId: string) {
         },
       );
     },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Schema queries
+// ---------------------------------------------------------------------------
+
+export function useRecipeSchema() {
+  return useQuery({
+    queryKey: queryKeys.recipeSchema(),
+    queryFn: () => client.getRecipeSchema(),
+    staleTime: Number.POSITIVE_INFINITY,
   });
 }
