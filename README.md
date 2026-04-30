@@ -70,3 +70,49 @@ That command runs the full local quality gate:
 - Production build
 
 Agents must not consider implementation work complete until the relevant checks pass.
+
+## Self-Hosting
+
+The app ships as a single Docker Compose stack: one Bun container that serves both the Hono API and the built React SPA, backed by a Postgres database.
+
+### Quick start
+
+```sh
+git clone <repo-url> family-recipes
+cd family-recipes
+cp .env.example .env
+# Edit .env and set POSTGRES_PASSWORD to something strong
+docker compose -f infra/docker/docker-compose.yml --env-file .env up --build
+```
+
+The app is then available at `http://localhost:3001/`.
+
+### Data backups
+
+Recipe data lives in the `recipes_pg_data` named volume. Two backup options:
+
+1. **Database dump** — run `pg_dump` inside the Postgres container:
+
+   ```sh
+   docker exec family-recipes-postgres-1 pg_dump -U recipes recipes > backup.sql
+   ```
+
+2. **JSON export** — call the built-in export endpoint:
+
+   ```sh
+   curl http://localhost:3001/api/export > recipes-backup.json
+   ```
+
+### Updating
+
+Rebuild from source with the latest code:
+
+```sh
+docker compose -f infra/docker/docker-compose.yml --env-file .env up --build
+```
+
+When a pre-built image is published to a registry, use `docker compose pull` before `up`.
+
+### Installing to the home screen (PWA)
+
+The app is a Progressive Web App. On **iOS** (Safari): tap the Share button → "Add to Home Screen". On **Android** (Chrome): tap the menu → "Add to Home screen" or "Install app". Once installed, the app launches full-screen and a cooking-mode screen-wake-lock keeps the display on while you follow a recipe in the kitchen.
