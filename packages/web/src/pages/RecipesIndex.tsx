@@ -72,7 +72,7 @@ export function RecipesIndex() {
     });
   };
 
-  const generationEnabled = appConfig?.features.recipeGeneration === true;
+  const canGenerate = appConfig?.features.recipeGeneration === true;
 
   return (
     <Page className="py-2">
@@ -135,21 +135,19 @@ export function RecipesIndex() {
       <div className="flex gap-2 mb-4 md:justify-end">
         <Link
           to="/recipes/new"
-          className={`flex items-center justify-center gap-2 rounded-xl bg-(--recipe-primary) hover:bg-[#b8c59f] active:bg-[#97a67d] text-(--recipe-primary-text) font-semibold px-4 py-3 text-sm transition-colors min-h-11 ${generationEnabled ? "flex-1 md:flex-none" : "flex-1 md:flex-none"}`}
+          className="flex-1 md:flex-none flex items-center justify-center gap-2 rounded-xl bg-(--recipe-primary) hover:bg-[#b8c59f] active:bg-[#97a67d] text-(--recipe-primary-text) font-semibold px-4 py-3 text-sm transition-colors min-h-11"
         >
           <PlusIcon className="size-4" />
           New Recipe
         </Link>
-        {generationEnabled && (
-          <button
-            type="button"
-            onClick={() => setSheetOpen(true)}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 rounded-xl border border-(--recipe-border) text-(--recipe-muted) hover:border-(--recipe-accent) hover:text-(--recipe-text) font-medium px-4 py-3 text-sm transition-colors min-h-11 bg-(--recipe-surface)"
-          >
-            <SparklesIcon className="size-4" />
-            Generate
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => setSheetOpen(true)}
+          className="flex-1 md:flex-none flex items-center justify-center gap-2 rounded-xl border border-(--recipe-border) text-(--recipe-muted) hover:border-(--recipe-accent) hover:text-(--recipe-text) font-medium px-4 py-3 text-sm transition-colors min-h-11 bg-(--recipe-surface)"
+        >
+          <SparklesIcon className="size-4" />
+          Generate
+        </button>
       </div>
 
       {/* Recipe list */}
@@ -237,6 +235,7 @@ export function RecipesIndex() {
       {/* Generate Recipe Sheet */}
       <GenerateRecipeSheet
         open={sheetOpen}
+        canGenerate={canGenerate}
         onClose={() => setSheetOpen(false)}
         onGenerated={handleGenerated}
       />

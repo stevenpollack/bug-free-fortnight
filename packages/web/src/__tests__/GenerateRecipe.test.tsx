@@ -15,20 +15,28 @@ async function renderIndex() {
 // Feature flag tests
 // ---------------------------------------------------------------------------
 
-test("Generate button is not rendered when recipeGeneration flag is off", async () => {
+test("Generate button is always rendered; opens sheet defaulting to Paste JSON when flag is off", async () => {
   server.use(
     http.get("*/api/config", () => {
       return HttpResponse.json({ features: { recipeGeneration: false } });
     }),
   );
 
-  const { queryByRole } = await renderIndex();
+  const user = userEvent.setup();
+  const { getByRole, getByLabelText } = await renderIndex();
 
   await waitFor(() => {
     // New Recipe button should be present
-    expect(queryByRole("link", { name: /new recipe/i })).toBeInTheDocument();
-    // Generate button should not be present
-    expect(queryByRole("button", { name: /generate/i })).not.toBeInTheDocument();
+    expect(getByRole("link", { name: /new recipe/i })).toBeInTheDocument();
+    // Generate button is also present
+    expect(getByRole("button", { name: /^generate$/i })).toBeInTheDocument();
+  });
+
+  await user.click(getByRole("button", { name: /^generate$/i }));
+
+  // Sheet opens on Paste JSON tab since generation is unavailable
+  await waitFor(() => {
+    expect(getByLabelText(/paste recipe json/i)).toBeInTheDocument();
   });
 });
 

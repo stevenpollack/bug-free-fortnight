@@ -77,16 +77,16 @@ test("+ New Recipe button is present in page body (not header)", async () => {
   });
 });
 
-test("Generate button is hidden when feature flag is off", async () => {
+test("Generate button is always visible regardless of feature flag", async () => {
   server.use(
     http.get("*/api/config", () => {
       return HttpResponse.json({ features: { recipeGeneration: false } });
     }),
   );
 
-  const { queryByRole } = await renderRecipes();
+  const { getByRole } = await renderRecipes();
 
   await waitFor(() => {
-    expect(queryByRole("button", { name: /^generate$/i })).not.toBeInTheDocument();
+    expect(getByRole("button", { name: /^generate$/i })).toBeInTheDocument();
   });
 });
