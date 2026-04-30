@@ -10,7 +10,8 @@
     "format": "biome format --write .",
     "build": "bun run --cwd apps/web build && bun run --cwd apps/api build",
     "dev:web": "bun run --cwd apps/web dev",
-    "dev:api": "bun run --cwd apps/api dev"
+    "dev:api": "bun run --cwd apps/api dev",
+    "start:api": "bun run apps/api/src/index.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
