@@ -103,6 +103,36 @@ export const healthSchema = z.object({
 export type Health = z.infer<typeof healthSchema>;
 
 // ---------------------------------------------------------------------------
+// Meal planner
+// ---------------------------------------------------------------------------
+
+export const DayOfWeek = z.enum(["mon", "tue", "wed", "thu", "fri", "sat", "sun"]);
+export type DayOfWeek = z.infer<typeof DayOfWeek>;
+
+export const MealPlanSlotWrite = z
+  .object({
+    day_of_week: DayOfWeek,
+    recipe_id: z.string().uuid().nullable().optional(),
+    note: z.string().max(200).nullable().optional(),
+  })
+  .refine((v) => !(v.recipe_id && v.note), {
+    message: "A slot cannot have both recipe_id and note set",
+    path: ["recipe_id"],
+  });
+
+export type MealPlanSlotWrite = z.infer<typeof MealPlanSlotWrite>;
+
+export const MealPlanCreate = z.object({
+  name: z.string().max(100).nullable().optional(),
+});
+export type MealPlanCreate = z.infer<typeof MealPlanCreate>;
+
+export const MealPlanUpdate = z.object({
+  name: z.string().max(100).nullable().optional(),
+});
+export type MealPlanUpdate = z.infer<typeof MealPlanUpdate>;
+
+// ---------------------------------------------------------------------------
 // Client log forwarding
 // ---------------------------------------------------------------------------
 
