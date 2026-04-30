@@ -1,5 +1,6 @@
 import type { RecipeCreate, RecipeUpdate } from "@api/schemas";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { DayKey } from "./client";
 import { client } from "./client";
 
 // ---------------------------------------------------------------------------
@@ -11,6 +12,8 @@ export const queryKeys = {
     ["recipes", params] as const,
   recipe: (id: string) => ["recipe", id] as const,
   tags: () => ["tags"] as const,
+  mealPlans: () => ["meal-plans"] as const,
+  mealPlan: (id: string) => ["meal-plans", id] as const,
 };
 
 // ---------------------------------------------------------------------------
@@ -122,5 +125,88 @@ export function useDeleteTag() {
 export function useImportPreview() {
   return useMutation({
     mutationFn: (url: string) => client.importPreview(url),
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Meal plan queries
+// ---------------------------------------------------------------------------
+
+export function useMealPlansList() {
+  return useQuery({
+    queryKey: queryKeys.mealPlans(),
+    queryFn: () => client.listMealPlans(),
+    select: (data) => data.mealPlans,
+  });
+}
+
+export function useMealPlan(id: string) {
+  return useQuery({
+    queryKey: queryKeys.mealPlan(id),
+    queryFn: () => client.getMealPlan(id),
+    select: (data) => data.mealPlan,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Meal plan mutations
+// ---------------------------------------------------------------------------
+
+export function useCreateMealPlan() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (name?: string | null) => client.createMealPlan(name),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.mealPlans() });
+    },
+  });
+}
+
+export function useUpdateMealPlan(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { name?: string | null }) => client.updateMealPlan(id, body),
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: queryKeys.mealPlans() });
+      qc.setQueryData(queryKeys.mealPlan(id), data);
+    },
+  });
+}
+
+export function useDeleteMealPlan() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => client.deleteMealPlan(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.mealPlans() });
+    },
+  });
+}
+
+export function useActivateMealPlan() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => client.activateMealPlan(id),
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: queryKeys.mealPlans() });
+      qc.setQueryData(queryKeys.mealPlan(data.mealPlan.id), data);
+    },
+  });
+}
+
+export function useUpsertSlot(planId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      day,
+      body,
+    }: {
+      day: DayKey;
+      body: { recipe_id?: string | null; note?: string | null };
+    }) => client.upsertSlot(planId, day, body),
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: queryKeys.mealPlans() });
+      qc.setQueryData(queryKeys.mealPlan(planId), data);
+    },
   });
 }

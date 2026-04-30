@@ -2,6 +2,8 @@ import { createRootRoute, createRoute, createRouter, redirect } from "@tanstack/
 import { z } from "zod";
 import { AppLayout } from "./layouts/AppLayout";
 import { ImportFlow } from "./pages/ImportFlow";
+import { MealPlanDetail } from "./pages/MealPlanDetail";
+import { MealPlansIndex } from "./pages/MealPlansIndex";
 import { RecipeCreate } from "./pages/RecipeCreate";
 import { RecipeDetail } from "./pages/RecipeDetail";
 import { RecipeEdit } from "./pages/RecipeEdit";
@@ -47,6 +49,18 @@ const importRoute = createRoute({
   component: ImportFlow,
 });
 
+const mealPlansIndexRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/meal-plans",
+  component: MealPlansIndex,
+});
+
+const mealPlanDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/meal-plans/$id",
+  component: MealPlanDetail,
+});
+
 // Catch-all redirect to home
 const notFoundRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -63,6 +77,8 @@ const routeTree = rootRoute.addChildren([
   recipeDetailRoute,
   recipeEditRoute,
   importRoute,
+  mealPlansIndexRoute,
+  mealPlanDetailRoute,
   notFoundRoute,
 ]);
 
