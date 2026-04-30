@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { useRecipeSchema } from "../api/queries";
+import { copyToClipboard } from "../lib/copyToClipboard";
 import { buildRecipePrompt } from "../lib/recipePrompt";
 import { CheckIcon, ClipboardIcon } from "./icons";
 
@@ -10,18 +11,7 @@ export function CopyRecipePromptButton() {
   const handleCopy = useCallback(async () => {
     if (!schema) return;
     const prompt = buildRecipePrompt(schema);
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(prompt);
-    } else {
-      const textarea = document.createElement("textarea");
-      textarea.value = prompt;
-      textarea.style.position = "fixed";
-      textarea.style.opacity = "0";
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textarea);
-    }
+    await copyToClipboard(prompt);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }, [schema]);
