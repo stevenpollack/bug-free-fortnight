@@ -5,61 +5,68 @@ A self-hosted recipe tracker for a private household. The app is intended for tr
 ## Planned Stack
 
 - Runtime and package manager: Bun
-- Frontend: React, Vite, TypeScript
-- Backend: Hono, TypeScript, Bun
-- Shared package: TypeScript types and Zod schemas
+- Frontend: React + Vite + TypeScript, mobile-first, installable PWA, Screen Wake Lock for cooking mode
+- Styling: Tailwind CSS
+- Frontend libraries: TanStack Query, TanStack Router, TanStack Form
+- Backend: Hono on Bun
 - Database: PostgreSQL
-- ORM/migrations: Drizzle
+- ORM and driver: Drizzle with the `postgres` (postgres-js) driver
+- IDs: UUIDv7
+- Validation: Zod (co-located in the API, re-exported to the web via a TS path alias; no separate shared package)
 - Linting and formatting: Biome
-- Git hooks: Lefthook
-- Tests: Vitest
-- Deployment: Docker Compose first, Kubernetes-ready structure
+- Git hooks: Husky
+- Tests: `bun test`
+- Deployment: Docker Compose, single app container plus Postgres
 
-All dependencies should be pinned exactly. Do not use npm or semver ranges such as `^` or `~`.
+All dependencies must be pinned exactly. Do not use npm. Do not use `^`, `~`, `latest`, or any semver range.
 
 ## Product Goals
 
-- Mobile-first recipe browsing and editing, optimized for phones and iPad-sized screens.
-- Manual recipe entry with structured ingredients, instructions, tags, source links, notes, and servings.
-- RecipeTin Eats URL import using structured recipe metadata where available, followed by a review/edit step before saving.
-- Ingredient scaling from a base serving count while preserving original imported ingredient text for reference.
-- Flexible tag categories so the household can add new categories without schema churn.
+- Mobile-first browsing and editing, optimized for phones and iPad-sized screens.
+- Installable as a home-screen PWA.
+- Cooking mode keeps the screen awake while reading a recipe in the kitchen.
+- Manual recipe entry with structured ingredients, instructions, tags, source link, notes, and base servings.
+- RecipeTin Eats URL import using JSON-LD recipe metadata, with a review/edit step before saving and ingredient lines parsed into structured fields.
+- Ingredient scaling from base servings while preserving the original imported text.
+- Free-form tags with an optional category facet (e.g. `cuisine`, `method`, `meal_type`). A small canonical seed ships with the app; the household adds more from the UI.
+- JSON export endpoint for backups, alongside `pg_dump` for full database backups.
 
-Suggested initial tag categories:
+## Importer Safety
 
-- Cuisine: Asian, Western, Italian, Mexican, Indian, Middle Eastern
-- Method: slow cooker, one pot, pressure cooker, oven baked, air fryer, no cook
-- Meal type: breakfast, lunch, dinner, snack, dessert, side
-- Protein/main: chicken, beef, pork, seafood, vegetarian, tofu, legumes
-- Dietary: vegetarian, vegan, gluten free, dairy free, low carb
-- Practical: freezer friendly, meal prep, batch cook, weeknight, kid friendly, leftovers
-- Difficulty: easy, moderate, project cook
-- Occasion: family favourite, entertaining, comfort food, summer, winter
+The recipe importer is restricted in v1 to:
+
+- Allowlist of `https://www.recipetineats.com/*` URLs.
+- 10 second fetch timeout.
+- 2 MB max response size.
+- No cross-origin redirect following.
+
+These constraints exist even though v1 runs on a private network.
 
 ## Intended Repo Shape
 
 ```text
 apps/
-  api/       # Hono API running on Bun
-  web/       # React + Vite SPA
-packages/
-  shared/    # Shared schemas and types
+  api/   # Hono API on Bun, also serves the built web app in production
+  web/   # React + Vite SPA (installable PWA)
 infra/
-  docker/    # Docker-related files, if useful
-  k8s/       # Kubernetes manifests
+  docker/  # Dockerfile and Docker Compose
 ```
 
-The production app should be deployable as one app container plus Postgres. The API can serve the built frontend assets, while the repo keeps a clean frontend/backend split.
+Schemas and types are shared between `apps/api` and `apps/web` via a TypeScript path alias, not a separate package.
 
 ## Verification
 
-Scaffolding and proof-of-correctness checks come before feature work. The repo should expose a single command, likely `bun run check`, that runs the complete local quality gate.
+Scaffolding and proof-of-correctness checks come before feature work. The repo exposes a single command:
 
-Expected checks:
+```sh
+bun run check
+```
+
+That command runs the full local quality gate:
 
 - TypeScript typecheck with `tsc`
 - Biome lint and formatting validation
-- Tests
+- `bun test`
 - Production build
 
-Agents should not consider implementation work complete until the relevant checks pass.
+Agents must not consider implementation work complete until the relevant checks pass.
