@@ -4,7 +4,8 @@
   "workspaces": ["packages/*"],
   "scripts": {
     "prepare": "husky",
-    "check": "bun run typecheck && bun run lint && bun test && bun run build",
+    "check": "bun run typecheck && bun run lint && bun run test && bun run build",
+    "test": "bun test packages/api && bun run -F web test",
     "typecheck": "bun run -F web typecheck && bun run -F api typecheck",
     "lint": "biome check .",
     "format": "biome format --write .",
