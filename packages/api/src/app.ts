@@ -6,6 +6,7 @@ import { logger } from "./logger";
 import { requestLogger } from "./middleware/requestLogger";
 import { configRouter } from "./routes/config";
 import { exportRouter } from "./routes/export";
+import { generateRouter } from "./routes/generate";
 import { importRouter } from "./routes/import";
 import { logRouter } from "./routes/log";
 import { mealPlanRouter } from "./routes/mealPlans";
@@ -48,6 +49,7 @@ export function createApp({ webDistDir }: AppOptions = {}) {
 
   app.route("/api", configRouter);
   app.route("/api", exportRouter);
+  app.route("/api", generateRouter);
   app.route("/api", importRouter);
   app.route("/api", logRouter);
   app.route("/api", mealPlanRouter);
