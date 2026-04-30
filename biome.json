@@ -37,7 +37,8 @@
       "packages/api/node_modules",
       "packages/web/tsconfig*.json",
       "packages/api/tsconfig*.json",
-      "packages/api/drizzle"
+      "packages/api/drizzle",
+      ".claude/worktrees"
     ]
   }
 }

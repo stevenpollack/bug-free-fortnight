@@ -1,5 +1,5 @@
 import type { RecipeCreate as RecipeCreatePayload } from "@api/schemas";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useCreateRecipe } from "../api/queries";
 import { Page } from "../components/Page";
@@ -22,6 +22,12 @@ export function RecipeCreate() {
 
   return (
     <Page className="py-4">
+      <Link
+        to="/"
+        className="text-sm text-(--recipe-muted) hover:text-(--recipe-text) transition-colors mb-2 inline-block"
+      >
+        ← Recipes
+      </Link>
       <h1 className="text-xl font-bold text-(--recipe-text) mb-6">New Recipe</h1>
       <RecipeForm
         defaultValues={defaultFormValues()}

@@ -1,4 +1,4 @@
-import { getRouteApi, useNavigate } from "@tanstack/react-router";
+import { Link, getRouteApi, useNavigate } from "@tanstack/react-router";
 
 const Route = getRouteApi("/recipes/$id/edit");
 import type { RecipeCreate as RecipeCreatePayload } from "@api/schemas";
@@ -45,6 +45,13 @@ export function RecipeEdit() {
 
   return (
     <Page className="py-4">
+      <Link
+        to="/recipes/$id"
+        params={{ id }}
+        className="text-sm text-(--recipe-muted) hover:text-(--recipe-text) transition-colors mb-2 inline-block"
+      >
+        ← {recipe.title.length > 30 ? `${recipe.title.slice(0, 30)}…` : recipe.title}
+      </Link>
       <h1 className="text-xl font-bold text-(--recipe-text) mb-6">Edit: {recipe.title}</h1>
       <RecipeForm
         defaultValues={detailToFormValues(recipe)}
