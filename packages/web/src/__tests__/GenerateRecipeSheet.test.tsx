@@ -28,9 +28,9 @@ async function openPasteTab(
   // With recipeGeneration:true default, sheet opens on Generate tab.
   // Switch to Paste JSON.
   await waitFor(() => {
-    expect(getByRole("button", { name: /paste json/i })).toBeInTheDocument();
+    expect(getByRole("button", { name: /^paste json$/i })).toBeInTheDocument();
   });
-  await user.click(getByRole("button", { name: /paste json/i }));
+  await user.click(getByRole("button", { name: /^paste json$/i }));
 
   await waitFor(() => {
     expect(getByLabelText(/paste recipe json/i)).toBeInTheDocument();

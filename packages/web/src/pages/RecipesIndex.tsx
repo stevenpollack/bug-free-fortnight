@@ -6,12 +6,21 @@ import { GenerateRecipeSheet } from "../components/GenerateRecipeSheet";
 import { Page } from "../components/Page";
 import { RecipeCardSkeleton } from "../components/Skeleton";
 import { TagPill } from "../components/TagPill";
-import { ClockIcon, PlusIcon, SearchIcon, SparklesIcon, StarIcon } from "../components/icons";
+import {
+  ClipboardIcon,
+  ClockIcon,
+  PlusIcon,
+  SearchIcon,
+  SparklesIcon,
+  StarIcon,
+} from "../components/icons";
 
 const Route = getRouteApi("/");
 
 // Search params shape matching the route's validateSearch schema
 type SearchParams = { q?: string; tag?: string[]; favourite?: boolean };
+
+type SheetTab = "generate" | "paste";
 
 export function RecipesIndex() {
   // Cast needed: TanStack Router returns a union type including {} for routes without search
@@ -19,6 +28,7 @@ export function RecipesIndex() {
   const navigate = useNavigate({ from: "/" });
   const [localQ, setLocalQ] = useState(search.q ?? "");
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetTab, setSheetTab] = useState<SheetTab>("generate");
 
   const {
     data: recipes,
@@ -70,6 +80,11 @@ export function RecipesIndex() {
       to: "/recipes/new",
       state: { generatedRecipe: recipe } as unknown as Parameters<typeof navigate>[0]["state"],
     });
+  };
+
+  const openSheet = (tab: SheetTab) => {
+    setSheetTab(tab);
+    setSheetOpen(true);
   };
 
   const canGenerate = appConfig?.features.recipeGeneration === true;
@@ -132,21 +147,31 @@ export function RecipesIndex() {
       </div>
 
       {/* Action row */}
-      <div className="flex gap-2 mb-4 md:justify-end">
-        <Link
-          to="/recipes/new"
-          className="flex-1 md:flex-none flex items-center justify-center gap-2 rounded-xl bg-(--recipe-primary) hover:bg-[#b8c59f] active:bg-[#97a67d] text-(--recipe-primary-text) font-semibold px-4 py-3 text-sm transition-colors min-h-11"
-        >
-          <PlusIcon className="size-4" />
-          New Recipe
-        </Link>
+      <div className="flex flex-col gap-2 mb-4 md:flex-row md:justify-end">
+        <div className="flex gap-2">
+          <Link
+            to="/recipes/new"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 rounded-xl bg-(--recipe-primary) hover:bg-[#b8c59f] active:bg-[#97a67d] text-(--recipe-primary-text) font-semibold px-4 py-3 text-sm transition-colors min-h-11"
+          >
+            <PlusIcon className="size-4" />
+            New Recipe
+          </Link>
+          <button
+            type="button"
+            onClick={() => openSheet("generate")}
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 rounded-xl border border-(--recipe-border) text-(--recipe-muted) hover:border-(--recipe-accent) hover:text-(--recipe-text) font-medium px-4 py-3 text-sm transition-colors min-h-11 bg-(--recipe-surface)"
+          >
+            <SparklesIcon className="size-4" />
+            Generate
+          </button>
+        </div>
         <button
           type="button"
-          onClick={() => setSheetOpen(true)}
-          className="flex-1 md:flex-none flex items-center justify-center gap-2 rounded-xl border border-(--recipe-border) text-(--recipe-muted) hover:border-(--recipe-accent) hover:text-(--recipe-text) font-medium px-4 py-3 text-sm transition-colors min-h-11 bg-(--recipe-surface)"
+          onClick={() => openSheet("paste")}
+          className="flex items-center justify-center gap-1.5 text-sm text-(--recipe-muted) hover:text-(--recipe-text) transition-colors py-1 min-h-9"
         >
-          <SparklesIcon className="size-4" />
-          Generate
+          <ClipboardIcon className="size-4" />
+          Paste JSON from external AI
         </button>
       </div>
 
@@ -236,6 +261,7 @@ export function RecipesIndex() {
       <GenerateRecipeSheet
         open={sheetOpen}
         canGenerate={canGenerate}
+        defaultTab={sheetTab}
         onClose={() => setSheetOpen(false)}
         onGenerated={handleGenerated}
       />

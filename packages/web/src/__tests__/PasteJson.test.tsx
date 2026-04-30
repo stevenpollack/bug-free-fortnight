@@ -21,11 +21,11 @@ async function openPasteTab(
 
   await user.click(getByRole("button", { name: /^generate$/i }));
 
-  // Click the Paste JSON tab
+  // Click the Paste JSON tab (exact match to avoid "Paste JSON from external AI" button)
   await waitFor(() => {
-    expect(getByRole("button", { name: /paste json/i })).toBeInTheDocument();
+    expect(getByRole("button", { name: /^paste json$/i })).toBeInTheDocument();
   });
-  await user.click(getByRole("button", { name: /paste json/i }));
+  await user.click(getByRole("button", { name: /^paste json$/i }));
 
   await waitFor(() => {
     expect(getByLabelText(/paste recipe json/i)).toBeInTheDocument();

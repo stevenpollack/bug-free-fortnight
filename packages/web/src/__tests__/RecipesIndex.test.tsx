@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "./mocks/server";
 import { renderWithAppRouter } from "./renderWithProviders";
@@ -74,6 +75,22 @@ test("+ New Recipe button is present in page body (not header)", async () => {
 
   await waitFor(() => {
     expect(getByRole("link", { name: /new recipe/i })).toBeInTheDocument();
+  });
+});
+
+test("Paste JSON from external AI button opens sheet on Paste tab", async () => {
+  const user = userEvent.setup();
+  const { getByRole, getByLabelText } = await renderRecipes();
+
+  await waitFor(() => {
+    expect(getByRole("button", { name: /paste json from external ai/i })).toBeInTheDocument();
+  });
+
+  await user.click(getByRole("button", { name: /paste json from external ai/i }));
+
+  await waitFor(() => {
+    // Sheet opened on Paste tab — textarea is present
+    expect(getByLabelText(/paste recipe json/i)).toBeInTheDocument();
   });
 });
 
