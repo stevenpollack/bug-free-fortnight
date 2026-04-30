@@ -1,5 +1,5 @@
 import { expect, mock, test } from "bun:test";
-import { screen, waitFor } from "@testing-library/react";
+import { waitFor } from "@testing-library/react";
 import type React from "react";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 import * as loggerModule from "../lib/logger";
@@ -30,7 +30,7 @@ function suppressReactBoundaryLogs() {
 test("renders fallback when child throws", async () => {
   suppressReactBoundaryLogs();
 
-  renderWithQuery(
+  const { getByText } = renderWithQuery(
     <ErrorBoundary>
       <BrokenComponent message="Test error message" />
     </ErrorBoundary>,
@@ -39,14 +39,14 @@ test("renders fallback when child throws", async () => {
   console.error = originalConsoleError;
 
   await waitFor(() => {
-    expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
+    expect(getByText(/something went wrong/i)).toBeInTheDocument();
   });
 });
 
 test("fallback shows the error message", async () => {
   suppressReactBoundaryLogs();
 
-  renderWithQuery(
+  const { getByText } = renderWithQuery(
     <ErrorBoundary>
       <BrokenComponent message="My specific error" />
     </ErrorBoundary>,
@@ -55,14 +55,14 @@ test("fallback shows the error message", async () => {
   console.error = originalConsoleError;
 
   await waitFor(() => {
-    expect(screen.getByText(/my specific error/i)).toBeInTheDocument();
+    expect(getByText(/my specific error/i)).toBeInTheDocument();
   });
 });
 
 test("fallback shows Reload button", async () => {
   suppressReactBoundaryLogs();
 
-  renderWithQuery(
+  const { getByRole } = renderWithQuery(
     <ErrorBoundary>
       <BrokenComponent message="Boom" />
     </ErrorBoundary>,
@@ -71,7 +71,7 @@ test("fallback shows Reload button", async () => {
   console.error = originalConsoleError;
 
   await waitFor(() => {
-    expect(screen.getByRole("button", { name: /reload/i })).toBeInTheDocument();
+    expect(getByRole("button", { name: /reload/i })).toBeInTheDocument();
   });
 });
 

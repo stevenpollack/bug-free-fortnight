@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { screen, waitFor } from "@testing-library/react";
+import { waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { ShoppingList } from "../components/ShoppingList";
@@ -24,25 +24,25 @@ function withExistingList() {
 }
 
 test("shows Generate button and prompt when no list exists", async () => {
-  render();
+  const { getByRole, getByText } = render();
   await waitFor(() => {
-    expect(screen.getByRole("button", { name: /generate/i })).toBeInTheDocument();
-    expect(screen.getByText(/generate a shopping list/i)).toBeInTheDocument();
+    expect(getByRole("button", { name: /generate/i })).toBeInTheDocument();
+    expect(getByText(/generate a shopping list/i)).toBeInTheDocument();
   });
 });
 
 test("clicking Generate shows items and Regenerate button", async () => {
   const user = userEvent.setup();
-  render();
+  const { findByRole, getByRole, getByText } = render();
 
-  const btn = await screen.findByRole("button", { name: /^generate$/i });
+  const btn = await findByRole("button", { name: /^generate$/i });
   await user.click(btn);
 
   await waitFor(() => {
-    expect(screen.getByRole("button", { name: /regenerate/i })).toBeInTheDocument();
+    expect(getByRole("button", { name: /regenerate/i })).toBeInTheDocument();
     // Items rendered as "200 g Spaghetti" (quantity + unit + name)
-    expect(screen.getByText(/spaghetti/i)).toBeInTheDocument();
-    expect(screen.getByText(/eggs/i)).toBeInTheDocument();
+    expect(getByText(/spaghetti/i)).toBeInTheDocument();
+    expect(getByText(/eggs/i)).toBeInTheDocument();
   });
 });
 
@@ -70,15 +70,15 @@ test("checking an item shows it as checked (Uncheck aria-label)", async () => {
     }),
   );
 
-  render();
+  const { findByText, getByRole } = render();
 
-  await screen.findByText(/spaghetti/i);
+  await findByText(/spaghetti/i);
 
-  const checkBtn = screen.getByRole("button", { name: /^check spaghetti$/i });
+  const checkBtn = getByRole("button", { name: /^check spaghetti$/i });
   await user.click(checkBtn);
 
   await waitFor(() => {
-    expect(screen.getByRole("button", { name: /^uncheck spaghetti$/i })).toBeInTheDocument();
+    expect(getByRole("button", { name: /^uncheck spaghetti$/i })).toBeInTheDocument();
   });
 });
 
@@ -107,15 +107,15 @@ test("unchecking a checked item reverts it to unchecked", async () => {
     }),
   );
 
-  render();
+  const { findByRole, getByRole } = render();
 
   // Initially checked
-  await screen.findByRole("button", { name: /^uncheck spaghetti$/i });
+  await findByRole("button", { name: /^uncheck spaghetti$/i });
 
-  await user.click(screen.getByRole("button", { name: /^uncheck spaghetti$/i }));
+  await user.click(getByRole("button", { name: /^uncheck spaghetti$/i }));
 
   await waitFor(() => {
-    expect(screen.getByRole("button", { name: /^check spaghetti$/i })).toBeInTheDocument();
+    expect(getByRole("button", { name: /^check spaghetti$/i })).toBeInTheDocument();
   });
 });
 
@@ -123,21 +123,21 @@ test("adding a custom item shows it in the list", async () => {
   const user = userEvent.setup();
   withExistingList();
 
-  render();
+  const { findByText, getByRole, getByPlaceholderText, getByText } = render();
 
-  await screen.findByText(/spaghetti/i);
+  await findByText(/spaghetti/i);
 
-  const addBtn = screen.getByRole("button", { name: /add custom item/i });
+  const addBtn = getByRole("button", { name: /add custom item/i });
   await user.click(addBtn);
 
-  const input = screen.getByPlaceholderText(/add item/i);
+  const input = getByPlaceholderText(/add item/i);
   await user.type(input, "Olive oil");
 
-  const submitBtn = screen.getByRole("button", { name: /^add$/i });
+  const submitBtn = getByRole("button", { name: /^add$/i });
   await user.click(submitBtn);
 
   await waitFor(() => {
-    expect(screen.getByText(/olive oil/i)).toBeInTheDocument();
+    expect(getByText(/olive oil/i)).toBeInTheDocument();
   });
 });
 
@@ -145,15 +145,15 @@ test("deleting an item removes it from the list", async () => {
   const user = userEvent.setup();
   withExistingList();
 
-  render();
+  const { findByText, getByRole, queryByText } = render();
 
-  await screen.findByText(/spaghetti/i);
+  await findByText(/spaghetti/i);
 
-  const removeBtn = screen.getByRole("button", { name: /remove spaghetti/i });
+  const removeBtn = getByRole("button", { name: /remove spaghetti/i });
   await user.click(removeBtn);
 
   await waitFor(() => {
-    expect(screen.queryByText(/^200 g Spaghetti$/)).not.toBeInTheDocument();
+    expect(queryByText(/^200 g Spaghetti$/)).not.toBeInTheDocument();
   });
 });
 
@@ -168,10 +168,10 @@ test("shows staleness banner when plan updated after list generated", async () =
     }),
   );
 
-  render();
+  const { getByText } = render();
 
   await waitFor(() => {
-    expect(screen.getByText(/meal plan has changed/i)).toBeInTheDocument();
+    expect(getByText(/meal plan has changed/i)).toBeInTheDocument();
   });
 });
 
@@ -186,17 +186,17 @@ test("Generate failure: items do not appear", async () => {
   );
 
   const user = userEvent.setup();
-  render();
+  const { findByRole, queryByText, getByRole } = render();
 
-  const btn = await screen.findByRole("button", { name: /^generate$/i });
+  const btn = await findByRole("button", { name: /^generate$/i });
   await user.click(btn);
 
   // After failure the list should still be null — no items appear
   await waitFor(() => {
-    expect(screen.queryByText(/spaghetti/i)).not.toBeInTheDocument();
+    expect(queryByText(/spaghetti/i)).not.toBeInTheDocument();
   });
   // The Generate button is still present
-  expect(screen.getByRole("button", { name: /^generate$/i })).toBeInTheDocument();
+  expect(getByRole("button", { name: /^generate$/i })).toBeInTheDocument();
 });
 
 test("toggle failure reverts optimistic update", async () => {
@@ -217,17 +217,17 @@ test("toggle failure reverts optimistic update", async () => {
     }),
   );
 
-  render();
+  const { findByText, getByRole } = render();
 
-  await screen.findByText(/spaghetti/i);
+  await findByText(/spaghetti/i);
 
   // Initially unchecked
-  expect(screen.getByRole("button", { name: /^check spaghetti$/i })).toBeInTheDocument();
+  expect(getByRole("button", { name: /^check spaghetti$/i })).toBeInTheDocument();
 
-  await user.click(screen.getByRole("button", { name: /^check spaghetti$/i }));
+  await user.click(getByRole("button", { name: /^check spaghetti$/i }));
 
   // After patch fails, optimistic update rolls back to "check" (unchecked) state
   await waitFor(() => {
-    expect(screen.getByRole("button", { name: /^check spaghetti$/i })).toBeInTheDocument();
+    expect(getByRole("button", { name: /^check spaghetti$/i })).toBeInTheDocument();
   });
 });

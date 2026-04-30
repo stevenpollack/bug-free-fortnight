@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { screen, waitFor } from "@testing-library/react";
+import { waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { PLAN_ID, mockPlanDetail } from "./mocks/handlers";
@@ -11,34 +11,34 @@ async function renderPlanDetail() {
 }
 
 test("renders 7 day cards (Monday through Sunday)", async () => {
-  await renderPlanDetail();
+  const { getByText } = await renderPlanDetail();
 
   await waitFor(() => {
-    expect(screen.getByText("Monday")).toBeInTheDocument();
-    expect(screen.getByText("Tuesday")).toBeInTheDocument();
-    expect(screen.getByText("Wednesday")).toBeInTheDocument();
-    expect(screen.getByText("Thursday")).toBeInTheDocument();
-    expect(screen.getByText("Friday")).toBeInTheDocument();
-    expect(screen.getByText("Saturday")).toBeInTheDocument();
-    expect(screen.getByText("Sunday")).toBeInTheDocument();
+    expect(getByText("Monday")).toBeInTheDocument();
+    expect(getByText("Tuesday")).toBeInTheDocument();
+    expect(getByText("Wednesday")).toBeInTheDocument();
+    expect(getByText("Thursday")).toBeInTheDocument();
+    expect(getByText("Friday")).toBeInTheDocument();
+    expect(getByText("Saturday")).toBeInTheDocument();
+    expect(getByText("Sunday")).toBeInTheDocument();
   });
 });
 
 test("shows recipe name in a filled slot", async () => {
-  await renderPlanDetail();
+  const { getByText } = await renderPlanDetail();
 
   // Monday slot has Pasta Carbonara from mockPlanDetail
   await waitFor(() => {
-    expect(screen.getByText("Pasta Carbonara")).toBeInTheDocument();
+    expect(getByText("Pasta Carbonara")).toBeInTheDocument();
   });
 });
 
 test("shows placeholder text in empty slots", async () => {
-  await renderPlanDetail();
+  const { getAllByText } = await renderPlanDetail();
 
   // 6 empty days (tue-sun) each show "— Add dinner"
   await waitFor(() => {
-    const placeholders = screen.getAllByText("— Add dinner");
+    const placeholders = getAllByText("— Add dinner");
     expect(placeholders.length).toBeGreaterThanOrEqual(6);
   });
 });
@@ -76,18 +76,18 @@ test("fetch failure renders error card", async () => {
     }),
   );
 
-  await renderPlanDetail();
+  const { getByText } = await renderPlanDetail();
 
   await waitFor(() => {
-    expect(screen.getByText(/meal plan not found/i)).toBeInTheDocument();
+    expect(getByText(/meal plan not found/i)).toBeInTheDocument();
   });
 });
 
 test("plan name shown in name editor input", async () => {
-  await renderPlanDetail();
+  const { getByPlaceholderText } = await renderPlanDetail();
 
   await waitFor(() => {
-    const input = screen.getByPlaceholderText(/unnamed plan/i) as HTMLInputElement;
+    const input = getByPlaceholderText(/unnamed plan/i) as HTMLInputElement;
     expect(input.value).toBe("Test Week");
   });
 });
@@ -106,9 +106,9 @@ test("blurring name input with changed value triggers PATCH", async () => {
     }),
   );
 
-  await renderPlanDetail();
+  const { findByPlaceholderText } = await renderPlanDetail();
 
-  const input = await screen.findByPlaceholderText(/unnamed plan/i);
+  const input = await findByPlaceholderText(/unnamed plan/i);
   await user.clear(input);
   await user.type(input, "New Name");
   await user.tab(); // triggers blur
@@ -119,10 +119,10 @@ test("blurring name input with changed value triggers PATCH", async () => {
 });
 
 test("This Week badge shown when plan is active", async () => {
-  await renderPlanDetail();
+  const { getByText } = await renderPlanDetail();
 
   await waitFor(() => {
     // The activate button shows "This Week ✓" for the active plan
-    expect(screen.getByText(/this week/i)).toBeInTheDocument();
+    expect(getByText(/this week/i)).toBeInTheDocument();
   });
 });

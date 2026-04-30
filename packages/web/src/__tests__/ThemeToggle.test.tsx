@@ -1,5 +1,5 @@
 import { beforeEach, expect, test } from "bun:test";
-import { screen, waitFor } from "@testing-library/react";
+import { waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithAppRouter } from "./renderWithProviders";
 
@@ -14,16 +14,19 @@ async function renderApp() {
 }
 
 // AppLayout renders two toggle buttons (mobile + desktop). Use the first.
-function getToggleBtn(name: RegExp) {
-  const btns = screen.getAllByRole("button", { name });
+function getToggleBtn(
+  getAllByRole: (role: string, options?: { name?: RegExp }) => HTMLElement[],
+  name: RegExp,
+) {
+  const btns = getAllByRole("button", { name });
   return btns[0];
 }
 
 test("theme toggle buttons are present", async () => {
-  await renderApp();
+  const { getAllByRole } = await renderApp();
 
   await waitFor(() => {
-    const btns = screen.getAllByRole("button", { name: /switch to (light|dark) mode/i });
+    const btns = getAllByRole("button", { name: /switch to (light|dark) mode/i });
     expect(btns.length).toBeGreaterThanOrEqual(1);
   });
 });
@@ -32,9 +35,9 @@ test("clicking toggle changes data-theme to light", async () => {
   const user = userEvent.setup();
   localStorage.setItem("theme", "dark");
 
-  await renderApp();
+  const { getAllByRole } = await renderApp();
 
-  const toggleBtn = getToggleBtn(/switch to light mode/i);
+  const toggleBtn = getToggleBtn(getAllByRole, /switch to light mode/i);
   await user.click(toggleBtn);
 
   await waitFor(() => {
@@ -46,9 +49,9 @@ test("persists theme to localStorage after toggle", async () => {
   const user = userEvent.setup();
   localStorage.setItem("theme", "dark");
 
-  await renderApp();
+  const { getAllByRole } = await renderApp();
 
-  const toggleBtn = getToggleBtn(/switch to light mode/i);
+  const toggleBtn = getToggleBtn(getAllByRole, /switch to light mode/i);
   await user.click(toggleBtn);
 
   await waitFor(() => {
@@ -59,10 +62,10 @@ test("persists theme to localStorage after toggle", async () => {
 test("reads initial theme from localStorage (light → dark button shown)", async () => {
   localStorage.setItem("theme", "light");
 
-  await renderApp();
+  const { getAllByRole } = await renderApp();
 
   await waitFor(() => {
-    const btns = screen.getAllByRole("button", { name: /switch to dark mode/i });
+    const btns = getAllByRole("button", { name: /switch to dark mode/i });
     expect(btns.length).toBeGreaterThanOrEqual(1);
   });
 });
@@ -71,9 +74,9 @@ test("toggling back to dark mode works", async () => {
   const user = userEvent.setup();
   localStorage.setItem("theme", "light");
 
-  await renderApp();
+  const { getAllByRole } = await renderApp();
 
-  const toggleBtn = getToggleBtn(/switch to dark mode/i);
+  const toggleBtn = getToggleBtn(getAllByRole, /switch to dark mode/i);
   await user.click(toggleBtn);
 
   await waitFor(() => {

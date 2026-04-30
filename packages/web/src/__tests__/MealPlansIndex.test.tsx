@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { screen, waitFor } from "@testing-library/react";
+import { waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { PLAN_ID_2, mockPlanList } from "./mocks/handlers";
@@ -11,20 +11,20 @@ async function renderIndex() {
 }
 
 test("lists plan names", async () => {
-  await renderIndex();
+  const { getByText } = await renderIndex();
 
   await waitFor(() => {
-    expect(screen.getByText("Test Week")).toBeInTheDocument();
-    expect(screen.getByText("Another Plan")).toBeInTheDocument();
+    expect(getByText("Test Week")).toBeInTheDocument();
+    expect(getByText("Another Plan")).toBeInTheDocument();
   });
 });
 
 test("active plan has This Week badge", async () => {
-  await renderIndex();
+  const { getAllByText } = await renderIndex();
 
   await waitFor(() => {
     // The active plan card has a "This Week" badge
-    const badges = screen.getAllByText("This Week");
+    const badges = getAllByText("This Week");
     expect(badges.length).toBeGreaterThanOrEqual(1);
   });
 });
@@ -49,9 +49,9 @@ test("clicking New Plan calls POST /api/meal-plans", async () => {
     }),
   );
 
-  await renderIndex();
+  const { findByRole } = await renderIndex();
 
-  const newPlanBtn = await screen.findByRole("button", { name: /new plan/i });
+  const newPlanBtn = await findByRole("button", { name: /new plan/i });
   await user.click(newPlanBtn);
 
   await waitFor(() => {
@@ -77,13 +77,13 @@ test("delete plan removes it from the list", async () => {
     }),
   );
 
-  await renderIndex();
+  const { findByText, getAllByRole, queryByText } = await renderIndex();
 
   // Confirm "Another Plan" is visible
-  await screen.findByText("Another Plan");
+  await findByText("Another Plan");
 
   // Find and click the delete button for the inactive plan
-  const deleteBtn = screen.getAllByRole("button", { name: /delete plan/i });
+  const deleteBtn = getAllByRole("button", { name: /delete plan/i });
   // Should have at least one delete button
   expect(deleteBtn.length).toBeGreaterThan(0);
 
@@ -96,7 +96,7 @@ test("delete plan removes it from the list", async () => {
   window.confirm = originalConfirm;
 
   await waitFor(() => {
-    expect(screen.queryByText("Another Plan")).not.toBeInTheDocument();
+    expect(queryByText("Another Plan")).not.toBeInTheDocument();
   });
 });
 
@@ -110,10 +110,10 @@ test("list fetch failure shows error card", async () => {
     }),
   );
 
-  await renderIndex();
+  const { getByText } = await renderIndex();
 
   await waitFor(() => {
-    expect(screen.getByText(/failed to load meal plans/i)).toBeInTheDocument();
+    expect(getByText(/failed to load meal plans/i)).toBeInTheDocument();
   });
 });
 
@@ -129,11 +129,11 @@ test("delete failure keeps plan in list", async () => {
     }),
   );
 
-  await renderIndex();
+  const { findByText, getAllByRole, getByText } = await renderIndex();
 
-  await screen.findByText("Another Plan");
+  await findByText("Another Plan");
 
-  const deleteBtn = screen.getAllByRole("button", { name: /delete plan/i });
+  const deleteBtn = getAllByRole("button", { name: /delete plan/i });
 
   const originalConfirm = window.confirm;
   window.confirm = () => true;
@@ -144,6 +144,6 @@ test("delete failure keeps plan in list", async () => {
 
   // Plan should still be present since delete failed
   await waitFor(() => {
-    expect(screen.getByText("Another Plan")).toBeInTheDocument();
+    expect(getByText("Another Plan")).toBeInTheDocument();
   });
 });
