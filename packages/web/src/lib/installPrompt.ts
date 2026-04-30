@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import { logger } from "./logger";
+
+const log = logger.child("install-prompt");
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -25,11 +28,15 @@ export function useInstallPrompt(): InstallPrompt {
     typeof window !== "undefined" && window.matchMedia("(display-mode: standalone)").matches;
 
   useEffect(() => {
-    if (isStandalone) return;
+    if (isStandalone) {
+      log.debug({ standalone: true }, "skip — already installed");
+      return;
+    }
 
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
+      log.info("install prompt available");
     };
 
     window.addEventListener("beforeinstallprompt", handler);
@@ -38,8 +45,13 @@ export function useInstallPrompt(): InstallPrompt {
 
   const install = async () => {
     if (!deferredPrompt) return;
-    await deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
+    try {
+      await deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      log.info({ outcome }, "install prompt resolved");
+    } catch (err) {
+      log.warn(err, "install prompt failed");
+    }
     setDeferredPrompt(null);
   };
 

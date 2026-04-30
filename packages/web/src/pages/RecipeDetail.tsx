@@ -16,7 +16,10 @@ import {
   SunIcon,
   TrashIcon,
 } from "../components/icons";
+import { logger } from "../lib/logger";
 import { formatQuantity, scaleQuantity } from "../lib/quantity";
+
+const log = logger.child("wake-lock");
 
 // ---------------------------------------------------------------------------
 // Wake Lock hook
@@ -27,14 +30,22 @@ function useWakeLock() {
   const [active, setActive] = useState(false);
   const supported = "wakeLock" in navigator;
 
+  // Log once on mount if Wake Lock API is unsupported
+  useEffect(() => {
+    if (!supported) {
+      log.debug({ supported: false });
+    }
+  }, [supported]);
+
   const acquire = useCallback(async () => {
     if (!supported) return;
     try {
       lockRef.current = await navigator.wakeLock.request("screen");
+      log.info("wake lock acquired");
       setActive(true);
       lockRef.current.addEventListener("release", () => setActive(false));
-    } catch {
-      // Silently ignore — permission denied or page not visible
+    } catch (err) {
+      log.warn(err, "wake lock acquisition failed");
     }
   }, [supported]);
 
@@ -42,6 +53,7 @@ function useWakeLock() {
     lockRef.current?.release().catch(() => {});
     lockRef.current = null;
     setActive(false);
+    log.info("wake lock released");
   }, []);
 
   // Release on visibility change (tab hidden, screen off)
@@ -110,6 +122,7 @@ export function RecipeDetail() {
       wakeLock.release();
       setCookingMode(false);
     } else {
+      log.debug("attempting wake lock acquisition");
       await wakeLock.acquire();
       setCookingMode(true);
     }
