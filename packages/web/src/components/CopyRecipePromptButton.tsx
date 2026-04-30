@@ -10,7 +10,18 @@ export function CopyRecipePromptButton() {
   const handleCopy = useCallback(async () => {
     if (!schema) return;
     const prompt = buildRecipePrompt(schema);
-    await navigator.clipboard.writeText(prompt);
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(prompt);
+    } else {
+      const textarea = document.createElement("textarea");
+      textarea.value = prompt;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }, [schema]);
