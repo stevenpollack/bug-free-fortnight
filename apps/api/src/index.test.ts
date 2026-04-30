@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { app } from "./index";
+import { app } from "./app";
 
 test("GET /api/health returns ok", async () => {
   const req = new Request("http://localhost/api/health");
