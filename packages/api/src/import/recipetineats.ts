@@ -1,3 +1,5 @@
+import type pino from "pino";
+import { logger as rootLogger } from "../logger";
 import type { RecipeCreate } from "../schemas/index";
 import { extractRecipeJsonLd } from "./jsonLd";
 import { parseIngredientLine } from "./parse";
@@ -127,20 +129,25 @@ function extractImageUrl(image: unknown): string | null {
 export async function importRecipeTinEats(
   url: string,
   fetcher: Fetcher = fetch,
+  log: pino.Logger = rootLogger,
 ): Promise<ImportResult> {
   const warnings: string[] = [];
 
-  const response = await safeFetch(url, fetcher);
+  const response = await safeFetch(url, fetcher, log);
   if (!response.ok) {
     throw new Error(`Fetch failed with status ${response.status}`);
   }
 
+  log.info({ url }, "importer: fetched page");
+
   const html = await response.text();
-  const jsonLd = extractRecipeJsonLd(html);
+  const jsonLd = extractRecipeJsonLd(html, log);
 
   if (!jsonLd) {
     throw new Error("No Schema.org Recipe JSON-LD found on the page");
   }
+
+  log.info({ url }, "importer: json-ld extracted");
 
   const title = typeof jsonLd.name === "string" ? jsonLd.name.trim() : "";
   if (!title) throw new Error("Recipe JSON-LD has no name field");
@@ -193,6 +200,17 @@ export async function importRecipeTinEats(
     ingredients,
     tagIds: [],
   };
+
+  log.info(
+    {
+      url,
+      title,
+      ingredientCount: ingredients.length,
+      instructionCount: instructions.length,
+      warningsCount: warnings.length,
+    },
+    "importer: recipe normalised",
+  );
 
   return { recipe, warnings };
 }

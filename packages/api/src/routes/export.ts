@@ -1,9 +1,11 @@
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
+import { logger as rootLogger } from "../logger";
+import type { HonoEnv } from "../types";
 import { db } from "../db/client";
 import { ingredients, recipeTags, recipes, tags } from "../db/schema";
 
-export const exportRouter = new Hono();
+export const exportRouter = new Hono<HonoEnv>();
 
 function parseNumeric(v: string | null | undefined): number | null {
   if (v == null) return null;
@@ -49,6 +51,9 @@ exportRouter.get("/export", async (c) => {
     const recipeTags2 = tagsByRecipe.get(recipe.id) ?? [];
     return { ...recipe, ingredients: recipeIngredients, tags: recipeTags2 };
   });
+
+  const log = c.var.logger ?? rootLogger;
+  log.info({ recipeCount: allRecipes.length, tagCount: allTags.length }, "export served");
 
   return c.json({
     exportedAt: new Date().toISOString(),

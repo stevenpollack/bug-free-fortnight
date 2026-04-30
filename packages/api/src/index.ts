@@ -1,4 +1,5 @@
 import { createApp } from "./app";
+import { logger } from "./logger";
 
 const webDistDir = process.env.WEB_DIST_DIR;
 const app = createApp({ webDistDir });
@@ -7,7 +8,7 @@ export { app };
 
 if (import.meta.main) {
   if (!process.env.DATABASE_URL) {
-    console.error("[startup] DATABASE_URL environment variable is not set");
+    logger.error("DATABASE_URL environment variable is not set");
     process.exit(1);
   }
 
@@ -22,7 +23,7 @@ if (import.meta.main) {
   Bun.serve({ port, fetch: app.fetch });
 
   if (webDistDir) {
-    console.log(`[startup] Serving SPA from ${webDistDir}`);
+    logger.info({ webDistDir }, "serving SPA");
   }
-  console.log(`[startup] API listening on port ${port}`);
+  logger.info({ port }, "API listening");
 }

@@ -1,4 +1,5 @@
 import type { RecipeCreate, RecipeUpdate } from "@api/schemas";
+import { logger } from "../lib/logger";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3001";
 
@@ -88,7 +89,9 @@ async function req<T>(path: string, options?: RequestInit): Promise<T> {
     const body = json as { error?: { code?: string; message?: string } };
     const code = body?.error?.code ?? "UNKNOWN";
     const message = body?.error?.message ?? res.statusText;
-    throw new ApiError(res.status, code, message);
+    const err = new ApiError(res.status, code, message);
+    logger.warn({ path, status: res.status, code, message }, "api error");
+    throw err;
   }
 
   return json as T;

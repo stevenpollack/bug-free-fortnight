@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
+import { logger } from "../logger";
 
 /**
  * Stable 64-bit advisory lock id used to serialise concurrent API boots.
@@ -26,16 +27,16 @@ export async function runMigrations(): Promise<void> {
   const lockSql = postgres(url, { max: 1, connect_timeout: 10 });
   const migrationDb = drizzle(lockSql);
 
-  console.log("[migrate] acquiring advisory lock...");
+  logger.info("acquiring advisory lock");
   // Use unsafe() because postgres-js cannot serialise BigInt as a parameter.
   await lockSql.unsafe(`SELECT pg_advisory_lock(${MIGRATION_LOCK_ID})`);
-  console.log("[migrate] lock acquired, running migrations...");
+  logger.info("lock acquired, running migrations");
 
   try {
     await migrate(migrationDb, { migrationsFolder });
-    console.log("[migrate] migrations complete");
+    logger.info("migrations complete");
   } catch (err) {
-    console.error("[migrate] migration failed:", err);
+    logger.error({ err }, "migration failed");
     throw err;
   } finally {
     await lockSql.unsafe(`SELECT pg_advisory_unlock(${MIGRATION_LOCK_ID})`);
