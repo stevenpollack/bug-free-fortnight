@@ -18,7 +18,7 @@
     --recipe-chip-text: #dde8ca;
   }
 
-  [data-theme="light"] :root {
+  :root[data-theme="light"] {
     color-scheme: light;
     --recipe-bg: #f5f0e8;
     --recipe-surface: #ede6d9;
