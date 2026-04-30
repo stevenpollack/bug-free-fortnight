@@ -47,6 +47,52 @@ export const RecipeBase = z.object({
 export type RecipeBase = z.infer<typeof RecipeBase>;
 
 // ---------------------------------------------------------------------------
+// Ingredient (write — used in create/update bodies; displayOrder and originalLine optional)
+// ---------------------------------------------------------------------------
+
+export const IngredientWrite = z.object({
+  displayOrder: z.number().int().nonnegative().optional(),
+  groupHeading: z.string().nullable().optional(),
+  quantity: z.number().positive().nullable().optional(),
+  unit: z.string().nullable().optional(),
+  item: z.string().min(1),
+  notes: z.string().nullable().optional(),
+  // Server defaults to `item` when not provided (e.g. manual entry)
+  originalLine: z.string().optional(),
+});
+
+export type IngredientWrite = z.infer<typeof IngredientWrite>;
+
+// ---------------------------------------------------------------------------
+// Recipe (create / update)
+// ---------------------------------------------------------------------------
+
+export const RecipeCreate = RecipeBase.extend({
+  ingredients: z.array(IngredientWrite).default([]),
+  tagIds: z.array(z.string().uuid()).default([]),
+});
+
+export type RecipeCreate = z.infer<typeof RecipeCreate>;
+
+// PUT is a full replace — same shape as create.
+export const RecipeUpdate = RecipeCreate;
+export type RecipeUpdate = z.infer<typeof RecipeUpdate>;
+
+// ---------------------------------------------------------------------------
+// Import preview body
+// ---------------------------------------------------------------------------
+
+export const ImportPreviewBody = z.object({
+  url: z.string().url(),
+});
+
+export type ImportPreviewBody = z.infer<typeof ImportPreviewBody>;
+
+// ---------------------------------------------------------------------------
+// Favourite body (unused — toggle semantics need no body; kept for completeness)
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
 // Health (kept for backwards-compat with any existing consumers)
 // ---------------------------------------------------------------------------
 
