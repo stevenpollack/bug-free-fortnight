@@ -1,5 +1,7 @@
 import type { RecipeCreate, RecipeUpdate } from "@api/schemas";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSyncExternalStore } from "react";
+import { getAnthropicKey } from "../lib/anthropicKey";
 import type { DayKey, ShoppingList, ShoppingListItem } from "./client";
 import { client } from "./client";
 
@@ -27,6 +29,28 @@ export function useAppConfig() {
     queryKey: ["config"] as const,
     queryFn: () => client.getConfig(),
     staleTime: Number.POSITIVE_INFINITY,
+  });
+}
+
+function subscribe(cb: () => void) {
+  window.addEventListener("storage", cb);
+  return () => window.removeEventListener("storage", cb);
+}
+
+/**
+ * Returns true when AI generation can be used — either the server has an API
+ * key configured or the user has saved their own key in localStorage.
+ */
+export function useCanGenerate(): boolean {
+  const { data } = useAppConfig();
+  const localKey = useSyncExternalStore(subscribe, getAnthropicKey, () => null);
+  return data?.features.recipeGeneration === true || Boolean(localKey);
+}
+
+/** Mutation to test an Anthropic API key against our backend. */
+export function useTestAnthropicKey() {
+  return useMutation({
+    mutationFn: (key: string) => client.testAnthropicKey(key),
   });
 }
 
