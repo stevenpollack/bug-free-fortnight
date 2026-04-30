@@ -3,7 +3,8 @@ export type ErrorCode =
   | "BAD_REQUEST"
   | "VALIDATION_ERROR"
   | "INTERNAL_ERROR"
-  | "IMPORT_ERROR";
+  | "IMPORT_ERROR"
+  | "GENERATION_INVALID_REFERENCE";
 
 export class HttpError extends Error {
   constructor(
