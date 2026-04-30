@@ -104,7 +104,29 @@ export const mockRecipes = [
 // Default happy-path handlers
 // ---------------------------------------------------------------------------
 
+export const mockGeneratedRecipe = {
+  title: "Generated Pasta",
+  description: "An AI-generated pasta",
+  baseServings: 4,
+  prepTimeMinutes: 10,
+  cookTimeMinutes: 20,
+  instructions: ["Boil water", "Cook pasta"],
+  ingredients: [{ item: "pasta", quantity: 200, unit: "g", originalLine: "200g pasta" }],
+  favourite: false,
+  tagIds: [],
+};
+
 export const handlers = [
+  // App config — generation enabled by default
+  http.get("*/api/config", () => {
+    return HttpResponse.json({ features: { recipeGeneration: true } });
+  }),
+
+  // Recipe generation
+  http.post("*/api/recipes/generate", () => {
+    return HttpResponse.json({ recipe: mockGeneratedRecipe });
+  }),
+
   // Meal plans list
   http.get("*/api/meal-plans", () => {
     return HttpResponse.json({ mealPlans: mockPlanList });
