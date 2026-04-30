@@ -13,8 +13,10 @@
     "db:seed": "bun run src/db/seed.ts"
   },
   "dependencies": {
+    "@hono/zod-validator": "0.7.6",
     "drizzle-orm": "0.45.2",
     "hono": "4.12.15",
+    "parse-ingredient": "2.2.0",
     "postgres": "3.4.9",
     "uuidv7": "1.2.1",
     "zod": "4.3.6"
