@@ -1,0 +1,158 @@
+import type { RecipeCreate, RecipeUpdate } from "@api/schemas";
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3001";
+
+// ---------------------------------------------------------------------------
+// Response types (inferred from the DB schema and API routes)
+// ---------------------------------------------------------------------------
+
+export interface Tag {
+  id: string;
+  name: string;
+  category: string | null;
+}
+
+export interface Ingredient {
+  id: string;
+  recipeId: string;
+  displayOrder: number;
+  groupHeading: string | null;
+  quantity: number | null;
+  unit: string | null;
+  item: string;
+  notes: string | null;
+  originalLine: string;
+}
+
+export interface Recipe {
+  id: string;
+  title: string;
+  description: string | null;
+  sourceUrl: string | null;
+  imageUrl: string | null;
+  baseServings: number;
+  prepTimeMinutes: number | null;
+  cookTimeMinutes: number | null;
+  notes: string | null;
+  instructions: string[];
+  favourite: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RecipeListItem extends Recipe {
+  tagIds: string[];
+}
+
+export interface RecipeDetail extends Recipe {
+  tagIds: string[];
+  ingredients: Ingredient[];
+}
+
+export interface ImportResult {
+  recipe: RecipeCreate;
+  warnings: string[];
+}
+
+// ---------------------------------------------------------------------------
+// Error type
+// ---------------------------------------------------------------------------
+
+export class ApiError extends Error {
+  readonly status: number;
+  readonly code: string;
+
+  constructor(status: number, code: string, message: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Core fetcher
+// ---------------------------------------------------------------------------
+
+async function req<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(`${API_BASE}/api${path}`, {
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    ...options,
+  });
+
+  if (res.status === 204) return undefined as T;
+
+  const json = (await res.json()) as unknown;
+
+  if (!res.ok) {
+    const body = json as { error?: { code?: string; message?: string } };
+    const code = body?.error?.code ?? "UNKNOWN";
+    const message = body?.error?.message ?? res.statusText;
+    throw new ApiError(res.status, code, message);
+  }
+
+  return json as T;
+}
+
+// ---------------------------------------------------------------------------
+// API functions
+// ---------------------------------------------------------------------------
+
+export const client = {
+  // Recipes
+  getRecipes(params: { q?: string; tag?: string[]; favourite?: boolean }) {
+    const qs = new URLSearchParams();
+    if (params.q) qs.set("q", params.q);
+    for (const t of params.tag ?? []) qs.append("tag", t);
+    if (params.favourite !== undefined) qs.set("favourite", String(params.favourite));
+    const query = qs.toString() ? `?${qs.toString()}` : "";
+    return req<{ recipes: RecipeListItem[] }>(`/recipes${query}`);
+  },
+
+  getRecipe(id: string) {
+    return req<{ recipe: RecipeDetail }>(`/recipes/${id}`);
+  },
+
+  createRecipe(body: RecipeCreate) {
+    return req<{ recipe: RecipeDetail }>("/recipes", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  },
+
+  updateRecipe(id: string, body: RecipeUpdate) {
+    return req<{ recipe: RecipeDetail }>(`/recipes/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    });
+  },
+
+  deleteRecipe(id: string) {
+    return req<void>(`/recipes/${id}`, { method: "DELETE" });
+  },
+
+  toggleFavourite(id: string) {
+    return req<{ recipe: RecipeDetail }>(`/recipes/${id}/favourite`, { method: "POST" });
+  },
+
+  // Tags
+  getTags() {
+    return req<{ tags: Tag[] }>("/tags");
+  },
+
+  upsertTag(body: { name: string; category?: string | null }) {
+    return req<{ tag: Tag }>("/tags", { method: "POST", body: JSON.stringify(body) });
+  },
+
+  deleteTag(id: string) {
+    return req<void>(`/tags/${id}`, { method: "DELETE" });
+  },
+
+  // Import
+  importPreview(url: string) {
+    return req<ImportResult>("/import/preview", {
+      method: "POST",
+      body: JSON.stringify({ url }),
+    });
+  },
+};
