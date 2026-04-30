@@ -71,6 +71,29 @@ That command runs the full local quality gate:
 
 Agents must not consider implementation work complete until the relevant checks pass.
 
+## Development
+
+### Running tests
+
+```sh
+# Fast gate — pure-logic unit tests, typecheck, lint, and build.
+# No Docker or database required.
+bun run check
+
+# Full integration suite — brings up a throwaway Postgres container via
+# Docker Compose, runs Drizzle migrations + seed, runs all *.integration.test.ts
+# files, then tears the container back down.
+# Requires Docker with Compose v2.
+bun run test:integration
+```
+
+The CI pipeline (`.github/workflows/ci.yml`) runs both gates on every push and pull request:
+
+1. `check` job — typecheck, Biome lint/format, unit tests, and production build.
+2. `integration` job — starts the test Compose stack, runs integration tests, tears down.
+
+The integration Postgres uses hardcoded credentials (`test`/`test`) on port 5433 and runs with a `tmpfs` volume so each run starts clean. **These credentials are for automated testing only and must never be used in production.**
+
 ## Self-Hosting
 
 The app ships as a single Docker Compose stack: one Bun container that serves both the Hono API and the built React SPA, backed by a Postgres database.
