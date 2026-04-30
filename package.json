@@ -1,0 +1,19 @@
+{
+  "name": "family-recipes",
+  "private": true,
+  "workspaces": ["apps/web", "apps/api"],
+  "scripts": {
+    "prepare": "husky",
+    "check": "bun run typecheck && bun run lint && bun test && bun run build",
+    "typecheck": "bun run --cwd apps/web typecheck && bun run --cwd apps/api typecheck",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "build": "bun run --cwd apps/web build && bun run --cwd apps/api build",
+    "dev:web": "bun run --cwd apps/web dev",
+    "dev:api": "bun run --cwd apps/api dev"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "husky": "9.1.7"
+  }
+}
