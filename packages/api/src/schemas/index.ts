@@ -154,6 +154,44 @@ export const ShoppingListItemCreate = z.object({
 export type ShoppingListItemCreate = z.infer<typeof ShoppingListItemCreate>;
 
 // ---------------------------------------------------------------------------
+// Meal plan generation
+// ---------------------------------------------------------------------------
+
+export const GeneratedSlot = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("existing"),
+    day: DayOfWeek,
+    recipeId: z.string().uuid(),
+  }),
+  z.object({
+    type: z.literal("new"),
+    day: DayOfWeek,
+    recipe: RecipeCreate,
+  }),
+]);
+
+export type GeneratedSlot = z.infer<typeof GeneratedSlot>;
+
+export const LlmMealPlanOutput = z.object({
+  slots: z.array(GeneratedSlot),
+});
+
+export type LlmMealPlanOutput = z.infer<typeof LlmMealPlanOutput>;
+
+export const MealPlanGenerateBody = z
+  .object({
+    planId: z.string().uuid(),
+  })
+  .and(
+    z.union([
+      z.object({ prompt: z.string().min(1).max(1000) }),
+      z.object({ rawJson: z.string().min(1) }),
+    ]),
+  );
+
+export type MealPlanGenerateBody = z.infer<typeof MealPlanGenerateBody>;
+
+// ---------------------------------------------------------------------------
 // Recipe generation
 // ---------------------------------------------------------------------------
 

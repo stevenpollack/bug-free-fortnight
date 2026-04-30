@@ -344,4 +344,16 @@ export const client = {
   getRecipeSchema() {
     return req<Record<string, unknown>>("/schemas/recipe");
   },
+
+  getMealPlanSchema() {
+    return req<Record<string, unknown>>("/schemas/meal-plan");
+  },
+
+  // Generate meal plan
+  generateMealPlan(planId: string, body: { prompt: string } | { rawJson: string }) {
+    return req<{ ok: boolean; slotCount: number }>("/meal-plans/generate", {
+      method: "POST",
+      body: JSON.stringify({ planId, ...body }),
+    });
+  },
 };

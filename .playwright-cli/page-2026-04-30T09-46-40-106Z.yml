@@ -1,0 +1,59 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - link "Family Recipes" [ref=e7] [cursor=pointer]:
+          - /url: /
+        - navigation [ref=e8]:
+          - link "Recipes" [ref=e9] [cursor=pointer]:
+            - /url: /
+          - link "Import" [ref=e10] [cursor=pointer]:
+            - /url: /import
+          - link "Planner" [ref=e11] [cursor=pointer]:
+            - /url: /meal-plans
+      - generic [ref=e12]:
+        - button "Switch to light mode" [ref=e13]:
+          - img [ref=e14]
+        - button "New recipe" [ref=e20]:
+          - img [ref=e21]
+          - text: New Recipe
+  - main [ref=e22]:
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - button "← Meal Plans" [ref=e25]
+        - textbox "Unnamed plan" [ref=e26]: Test plan
+        - button "This Week ✓" [ref=e27]
+      - generic [ref=e28]:
+        - generic [ref=e29]:
+          - generic [ref=e30]:
+            - generic [ref=e31]: Monday
+            - button "Clear Monday" [ref=e32]:
+              - img [ref=e33]
+          - button "French Toast" [ref=e36]:
+            - generic [ref=e37]: French Toast
+          - link "View recipe" [ref=e38] [cursor=pointer]:
+            - /url: /recipes/019ddd09-dbca-79b9-ae1f-6be0bda4b6b9
+        - generic [ref=e39]:
+          - generic [ref=e41]: Tuesday
+          - button "— Add dinner" [ref=e42]:
+            - generic [ref=e43]: — Add dinner
+        - generic [ref=e44]:
+          - generic [ref=e46]: Wednesday
+          - button "— Add dinner" [ref=e47]:
+            - generic [ref=e48]: — Add dinner
+        - generic [ref=e49]:
+          - generic [ref=e51]: Thursday
+          - button "— Add dinner" [ref=e52]:
+            - generic [ref=e53]: — Add dinner
+        - generic [ref=e54]:
+          - generic [ref=e56]: Friday
+          - button "— Add dinner" [ref=e57]:
+            - generic [ref=e58]: — Add dinner
+        - generic [ref=e59]:
+          - generic [ref=e61]: Saturday
+          - button "— Add dinner" [ref=e62]:
+            - generic [ref=e63]: — Add dinner
+        - generic [ref=e64]:
+          - generic [ref=e66]: Sunday
+          - button "— Add dinner" [ref=e67]:
+            - generic [ref=e68]: — Add dinner

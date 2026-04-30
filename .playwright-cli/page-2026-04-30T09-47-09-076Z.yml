@@ -1,0 +1,113 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - link "Family Recipes" [ref=e7] [cursor=pointer]:
+          - /url: /
+        - navigation [ref=e8]:
+          - link "Recipes" [ref=e9] [cursor=pointer]:
+            - /url: /
+          - link "Import" [ref=e10] [cursor=pointer]:
+            - /url: /import
+          - link "Planner" [ref=e11] [cursor=pointer]:
+            - /url: /meal-plans
+      - generic [ref=e12]:
+        - button "Switch to light mode" [ref=e13]:
+          - img [ref=e14]
+        - button "New recipe" [ref=e20]:
+          - img [ref=e21]
+          - text: New Recipe
+  - main [ref=e22]:
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - button "← Meal Plans" [ref=e25]
+        - textbox "Unnamed plan" [ref=e26]: Test plan
+        - button "This Week ✓" [ref=e27]
+      - generic [ref=e28]:
+        - generic [ref=e29]:
+          - generic [ref=e30]:
+            - generic [ref=e31]: Monday
+            - button "Clear Monday" [ref=e32]:
+              - img [ref=e33]
+          - button "French Toast" [ref=e36]:
+            - generic [ref=e37]: French Toast
+          - link "View recipe" [ref=e38] [cursor=pointer]:
+            - /url: /recipes/019ddd09-dbca-79b9-ae1f-6be0bda4b6b9
+        - generic [ref=e39]:
+          - generic [ref=e41]: Tuesday
+          - button "— Add dinner" [ref=e42]:
+            - generic [ref=e43]: — Add dinner
+        - generic [ref=e44]:
+          - generic [ref=e46]: Wednesday
+          - button "— Add dinner" [ref=e47]:
+            - generic [ref=e48]: — Add dinner
+        - generic [ref=e49]:
+          - generic [ref=e51]: Thursday
+          - button "— Add dinner" [ref=e52]:
+            - generic [ref=e53]: — Add dinner
+        - generic [ref=e54]:
+          - generic [ref=e56]: Friday
+          - button "— Add dinner" [ref=e57]:
+            - generic [ref=e58]: — Add dinner
+        - generic [ref=e59]:
+          - generic [ref=e61]: Saturday
+          - button "— Add dinner" [ref=e62]:
+            - generic [ref=e63]: — Add dinner
+        - generic [ref=e64]:
+          - generic [ref=e66]: Sunday
+          - button "— Add dinner" [ref=e67]:
+            - generic [ref=e68]: — Add dinner
+      - generic [ref=e73]:
+        - generic [ref=e74]:
+          - heading "Shopping List" [level=2] [ref=e75]
+          - button "Regenerate" [ref=e79]
+        - generic [ref=e80]:
+          - list [ref=e81]:
+            - listitem [ref=e82]:
+              - button "Check butter" [ref=e83]
+              - generic [ref=e84]: 30 g butter
+              - button "Remove butter" [ref=e85]:
+                - img [ref=e86]
+            - listitem [ref=e88]:
+              - button "Check cinnamon powder" [ref=e89]
+              - generic [ref=e90]: ½ tsp cinnamon powder
+              - button "Remove cinnamon powder" [ref=e91]:
+                - img [ref=e92]
+            - listitem [ref=e94]:
+              - button "Check eggs" [ref=e95]
+              - generic [ref=e96]: 2 large eggs
+              - button "Remove eggs" [ref=e97]:
+                - img [ref=e98]
+            - listitem [ref=e100]:
+              - button "Check Maple syrup, butter" [ref=e101]
+              - generic [ref=e102]: Maple syrup, butter
+              - button "Remove Maple syrup, butter" [ref=e103]:
+                - img [ref=e104]
+            - listitem [ref=e106]:
+              - button "Check milk" [ref=e107]
+              - generic [ref=e108]: ½ cup milk
+              - button "Remove milk" [ref=e109]:
+                - img [ref=e110]
+            - listitem [ref=e112]:
+              - button "Check slices brioche or white sandwich bread (, slightly stale (Note 1))" [ref=e113]
+              - generic [ref=e114]: 6 slices brioche or white sandwich bread (, slightly stale (Note 1))
+              - button "Remove slices brioche or white sandwich bread (, slightly stale (Note 1))" [ref=e115]:
+                - img [ref=e116]
+            - listitem [ref=e118]:
+              - button "Check strawberries, halved" [ref=e119]
+              - generic [ref=e120]: 250 g strawberries, halved
+              - button "Remove strawberries, halved" [ref=e121]:
+                - img [ref=e122]
+            - listitem [ref=e124]:
+              - button "Check vanilla extract" [ref=e125]
+              - generic [ref=e126]: 1 tsp vanilla extract
+              - button "Remove vanilla extract" [ref=e127]:
+                - img [ref=e128]
+            - listitem [ref=e130]:
+              - button "Check white sugar" [ref=e131]
+              - generic [ref=e132]: 1 tbsp white sugar
+              - button "Remove white sugar" [ref=e133]:
+                - img [ref=e134]
+          - button "Add custom item" [ref=e137]:
+            - img [ref=e138]
+            - text: Add custom item

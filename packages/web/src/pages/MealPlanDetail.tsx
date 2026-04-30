@@ -1,11 +1,18 @@
 import { Link, getRouteApi, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import type { DayKey, MealPlanSlot } from "../api/client";
-import { useActivateMealPlan, useMealPlan, useUpdateMealPlan, useUpsertSlot } from "../api/queries";
+import {
+  useActivateMealPlan,
+  useAppConfig,
+  useMealPlan,
+  useUpdateMealPlan,
+  useUpsertSlot,
+} from "../api/queries";
+import { GenerateMealPlanSheet } from "../components/GenerateMealPlanSheet";
 import { Page } from "../components/Page";
 import { RecipePickerSheet } from "../components/RecipePickerSheet";
 import { ShoppingList } from "../components/ShoppingList";
-import { XIcon } from "../components/icons";
+import { SparklesIcon, XIcon } from "../components/icons";
 
 const Route = getRouteApi("/meal-plans/$id");
 
@@ -146,8 +153,11 @@ export function MealPlanDetail() {
   const updatePlan = useUpdateMealPlan(id);
   const activatePlan = useActivateMealPlan();
   const upsertSlot = useUpsertSlot(id);
+  const { data: appConfig } = useAppConfig();
+  const canGenerate = appConfig?.features.recipeGeneration === true;
 
   const [pickerDay, setPickerDay] = useState<DayKey | null>(null);
+  const [generateSheetOpen, setGenerateSheetOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -210,22 +220,34 @@ export function MealPlanDetail() {
           isSaving={updatePlan.isPending}
         />
 
-        <button
-          type="button"
-          onClick={() => activatePlan.mutate(id)}
-          disabled={activatePlan.isPending}
-          className={`text-sm font-medium rounded-lg px-3 py-1.5 min-h-9 transition-colors ${
-            plan.is_active
-              ? "bg-(--recipe-chip-bg) text-(--recipe-chip-text)"
-              : "border border-(--recipe-primary) text-(--recipe-primary) hover:bg-(--recipe-chip-bg)"
-          } disabled:opacity-50`}
-        >
-          {plan.is_active
-            ? "This Week ✓"
-            : activatePlan.isPending
-              ? "Setting…"
-              : "Set as this week"}
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => activatePlan.mutate(id)}
+            disabled={activatePlan.isPending}
+            className={`text-sm font-medium rounded-lg px-3 py-1.5 min-h-9 transition-colors ${
+              plan.is_active
+                ? "bg-(--recipe-chip-bg) text-(--recipe-chip-text)"
+                : "border border-(--recipe-primary) text-(--recipe-primary) hover:bg-(--recipe-chip-bg)"
+            } disabled:opacity-50`}
+          >
+            {plan.is_active
+              ? "This Week ✓"
+              : activatePlan.isPending
+                ? "Setting…"
+                : "Set as this week"}
+          </button>
+
+          <button
+            type="button"
+            aria-label="Generate meal plan"
+            onClick={() => setGenerateSheetOpen(true)}
+            className="flex items-center gap-1.5 text-sm font-medium rounded-lg px-3 py-1.5 min-h-9 border border-(--recipe-border) text-(--recipe-muted) hover:text-(--recipe-text) hover:border-(--recipe-primary) transition-colors"
+          >
+            <SparklesIcon className="size-4" />
+            Generate
+          </button>
+        </div>
       </div>
 
       {/* Day grid */}
@@ -263,6 +285,15 @@ export function MealPlanDetail() {
           isSaving={upsertSlot.isPending}
         />
       )}
+
+      {/* Generate meal plan sheet */}
+      <GenerateMealPlanSheet
+        planId={id}
+        open={generateSheetOpen}
+        canGenerate={canGenerate}
+        onClose={() => setGenerateSheetOpen(false)}
+        onSuccess={() => setGenerateSheetOpen(false)}
+      />
     </Page>
   );
 }
