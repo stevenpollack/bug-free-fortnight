@@ -1,6 +1,7 @@
 import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
-import { BookOpenIcon, DownloadIcon, PlusIcon } from "../components/icons";
+import { BookOpenIcon, DownloadIcon, MoonIcon, PlusIcon, SunIcon } from "../components/icons";
 import { useInstallPrompt } from "../lib/installPrompt";
+import { useTheme } from "../lib/useTheme";
 
 function isActive(current: string, path: string) {
   if (path === "/") return current === "/";
@@ -24,6 +25,20 @@ function InstallButton({ className }: { className?: string }) {
   );
 }
 
+function ThemeToggleButton() {
+  const { theme, toggleTheme } = useTheme();
+  return (
+    <button
+      type="button"
+      onClick={toggleTheme}
+      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+      className="flex items-center justify-center rounded-lg border border-(--recipe-border) text-(--recipe-muted) px-2.5 py-2 min-h-11 transition-colors hover:bg-(--recipe-chip-bg) hover:text-(--recipe-text) active:bg-(--recipe-surface-raised)"
+    >
+      {theme === "dark" ? <SunIcon className="size-5" /> : <MoonIcon className="size-5" />}
+    </button>
+  );
+}
+
 export function AppLayout() {
   const navigate = useNavigate();
   const { location } = useRouterState();
@@ -38,6 +53,7 @@ export function AppLayout() {
             Family Recipes
           </Link>
           <div className="flex items-center gap-2">
+            <ThemeToggleButton />
             <InstallButton />
             <button
               type="button"
@@ -83,6 +99,7 @@ export function AppLayout() {
             </nav>
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggleButton />
             <InstallButton />
             <button
               type="button"
