@@ -3,23 +3,15 @@
 A self-hosted recipe tracker for a private household. The app is intended for tracking family favourites, importing recipes from RecipeTin Eats, editing ingredients and quantities, tagging recipes, filtering by cooking context, and scaling servings.
 
 ## How to safely run locally during development
-Make sure you've created/configured the `.env.local` file from `.env.example` and
+
+Make sure you've created/configured the `packages/{api,web}/.env.development(.local)` files from the `.env.example`s and
 
 ```bash
-APP_PORT=3011 docker compose \
-  -p family-recipes-dev \
-  -f infra/docker/docker-compose.yml \
-  --env-file .env.local \
-  up --build
+bun run start:dev:db
+bun dev
 ```
 
-The app should be available at http://localhost:3011 ... 
-
-To bring the app down:
-
-```bash
-docker compose -p family-recipes-dev -f infra/docker/docker-compose.yml --env-file .env down
-```
+The app should be available at http://localhost:5174 ...
 
 ## Planned Stack
 
