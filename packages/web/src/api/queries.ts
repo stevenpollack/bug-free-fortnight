@@ -19,6 +19,18 @@ export const queryKeys = {
 };
 
 // ---------------------------------------------------------------------------
+// App config
+// ---------------------------------------------------------------------------
+
+export function useAppConfig() {
+  return useQuery({
+    queryKey: ["config"] as const,
+    queryFn: () => client.getConfig(),
+    staleTime: Number.POSITIVE_INFINITY,
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Recipe queries
 // ---------------------------------------------------------------------------
 
@@ -127,6 +139,17 @@ export function useDeleteTag() {
 export function useImportPreview() {
   return useMutation({
     mutationFn: (url: string) => client.importPreview(url),
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Generate recipe mutation
+// ---------------------------------------------------------------------------
+
+export function useGenerateRecipe() {
+  return useMutation({
+    mutationFn: (body: { prompt: string; servings?: number; dietary?: string }) =>
+      client.generateRecipe(body),
   });
 }
 

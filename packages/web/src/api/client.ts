@@ -55,6 +55,12 @@ export interface ImportResult {
   warnings: string[];
 }
 
+export interface AppConfig {
+  features: {
+    recipeGeneration: boolean;
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Meal planner types
 // ---------------------------------------------------------------------------
@@ -208,6 +214,19 @@ export const client = {
 
   deleteTag(id: string) {
     return req<void>(`/tags/${id}`, { method: "DELETE" });
+  },
+
+  // Config
+  getConfig() {
+    return req<AppConfig>("/config");
+  },
+
+  // Generate recipe
+  generateRecipe(body: { prompt: string; servings?: number; dietary?: string }) {
+    return req<{ recipe: RecipeCreate }>("/recipes/generate", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
   },
 
   // Import
