@@ -18,6 +18,23 @@
     --recipe-chip-text: #dde8ca;
   }
 
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --recipe-bg: #f5f0e8;
+    --recipe-surface: #ede6d9;
+    --recipe-surface-raised: #e4dccb;
+    --recipe-text: #1e1a15;
+    --recipe-muted: #6b5f51;
+    --recipe-border: #c8bfb0;
+    --recipe-primary: #4d6b34;
+    --recipe-primary-text: #f5f0e8;
+    --recipe-accent: #a05e32;
+    --recipe-focus: #8a6c1a;
+    --recipe-destructive: #b03a28;
+    --recipe-chip-bg: #d8e8c4;
+    --recipe-chip-text: #2e3a20;
+  }
+
   /* Safe-area utilities for iOS notch / home bar */
   .safe-top {
     padding-top: env(safe-area-inset-top, 0px);

@@ -8,6 +8,13 @@
       "when": 1777512774897,
       "tag": "0000_loving_terror",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1777512774898,
+      "tag": "0001_add_meal_planner",
+      "breakpoints": true
     }
   ]
 }
