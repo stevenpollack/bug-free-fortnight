@@ -8,6 +8,7 @@ import { RecipeCreate } from "./pages/RecipeCreate";
 import { RecipeDetail } from "./pages/RecipeDetail";
 import { RecipeEdit } from "./pages/RecipeEdit";
 import { RecipesIndex } from "./pages/RecipesIndex";
+import { Settings } from "./pages/Settings";
 
 const rootRoute = createRootRoute({
   component: AppLayout,
@@ -61,6 +62,12 @@ const mealPlanDetailRoute = createRoute({
   component: MealPlanDetail,
 });
 
+const settingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/settings",
+  component: Settings,
+});
+
 // Catch-all redirect to home
 const notFoundRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -79,6 +86,7 @@ const routeTree = rootRoute.addChildren([
   importRoute,
   mealPlansIndexRoute,
   mealPlanDetailRoute,
+  settingsRoute,
   notFoundRoute,
 ]);
 
