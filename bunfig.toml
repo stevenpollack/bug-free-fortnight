@@ -1,3 +1,4 @@
+# see https://bun.com/docs/runtime/bunfig.md for more options
 [install]
 # Only install package versions published at least 3 days ago
 minimumReleaseAge = 259200
