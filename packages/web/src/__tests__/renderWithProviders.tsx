@@ -91,13 +91,18 @@ interface AppRouterRenderOptions {
   queryClient?: QueryClient;
 }
 
-export function renderWithAppRouter({
+export async function renderWithAppRouter({
   initialUrl,
   queryClient = makeQueryClient(),
 }: AppRouterRenderOptions) {
   const history = createMemoryHistory({ initialEntries: [initialUrl] });
   // createRouter with the real routeTree but fresh history
   const testRouter = createRouter({ routeTree: appRouter.routeTree, history });
+
+  // router.load() resolves async route loaders / redirects before first render.
+  // Without this, RouterProvider renders an empty div until the Promise resolves,
+  // which is too late for test assertions that run synchronously after render().
+  await testRouter.load();
 
   return render(
     <QueryClientProvider client={queryClient}>
