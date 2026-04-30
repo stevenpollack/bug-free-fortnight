@@ -4,6 +4,7 @@ import { cors } from "hono/cors";
 import { HttpError } from "./errors";
 import { logger } from "./logger";
 import { requestLogger } from "./middleware/requestLogger";
+import { anthropicKeyRouter } from "./routes/anthropicKey";
 import { configRouter } from "./routes/config";
 import { exportRouter } from "./routes/export";
 import { generateRouter } from "./routes/generate";
@@ -47,6 +48,7 @@ export function createApp({ webDistDir }: AppOptions = {}) {
 
   app.get("/api/health", (c) => c.json({ ok: true }));
 
+  app.route("/api", anthropicKeyRouter);
   app.route("/api", configRouter);
   app.route("/api", exportRouter);
   app.route("/api", generateRouter);
