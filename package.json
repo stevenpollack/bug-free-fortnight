@@ -4,7 +4,7 @@
   "workspaces": ["apps/web", "apps/api"],
   "scripts": {
     "prepare": "husky",
-    "check": "bun run typecheck && bun run lint && bun run test:unit && bun run build",
+    "check": "bun run typecheck && bun run lint && bun test && bun run build",
     "typecheck": "bun run --cwd apps/web typecheck && bun run --cwd apps/api typecheck",
     "lint": "biome check .",
     "format": "biome format --write .",
@@ -12,7 +12,6 @@
     "dev:web": "bun run --cwd apps/web dev",
     "dev:api": "bun run --cwd apps/api dev",
     "start:api": "bun run apps/api/src/index.ts",
-    "test:unit": "bun test apps/web/src apps/api/src/db apps/api/src/schemas apps/api/src/import/__tests__ apps/api/src/index.test.ts apps/api/src/static.test.ts",
     "test:integration:up": "docker compose -f infra/docker/docker-compose.test.yml up -d --wait",
     "test:integration:down": "docker compose -f infra/docker/docker-compose.test.yml down -v",
     "test:integration:run": "DATABASE_URL=postgres://test:test@localhost:5433/test bun run --cwd apps/api scripts/test-integration.ts",
