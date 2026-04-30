@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { RecipeCreate } from "../../../api/src/schemas/index.ts";
-import { useGenerateRecipe } from "../api/queries";
-import { SparklesIcon, XIcon } from "./icons";
+import { useGenerateRecipe, useRecipeSchema } from "../api/queries";
+import { copyToClipboard } from "../lib/copyToClipboard";
+import { buildRecipePrompt } from "../lib/recipePrompt";
+import { CheckIcon, ClipboardIcon, SparklesIcon, XIcon } from "./icons";
 
 type Tab = "generate" | "paste";
 
@@ -10,6 +12,8 @@ interface GenerateRecipeSheetProps {
   canGenerate: boolean;
   onClose: () => void;
   onGenerated: (recipe: RecipeCreate) => void;
+  /** If true, the sheet opens directly on the Paste tab (ignores canGenerate default). */
+  defaultTab?: Tab;
 }
 
 export function GenerateRecipeSheet({
@@ -17,8 +21,12 @@ export function GenerateRecipeSheet({
   canGenerate,
   onClose,
   onGenerated,
+  defaultTab,
 }: GenerateRecipeSheetProps) {
-  const [activeTab, setActiveTab] = useState<Tab>(() => (canGenerate ? "generate" : "paste"));
+  const [activeTab, setActiveTab] = useState<Tab>(() => {
+    if (defaultTab) return defaultTab;
+    return canGenerate ? "generate" : "paste";
+  });
 
   // Generate tab state
   const [prompt, setPrompt] = useState("");
@@ -31,13 +39,19 @@ export function GenerateRecipeSheet({
   // Paste tab state
   const [jsonText, setJsonText] = useState("");
   const [pasteError, setPasteError] = useState<string | undefined>();
+  const [pulsingPaste, setPulsingPaste] = useState(false);
+
+  // Copy-prompt state
+  const { data: schema } = useRecipeSchema();
+  const [copied, setCopied] = useState(false);
 
   // Reset to sensible default tab when sheet opens
   useEffect(() => {
     if (open) {
-      setActiveTab(canGenerate ? "generate" : "paste");
+      setActiveTab(defaultTab ?? (canGenerate ? "generate" : "paste"));
+      setPulsingPaste(false);
     }
-  }, [open, canGenerate]);
+  }, [open, canGenerate, defaultTab]);
 
   // Prevent body scroll while sheet is open
   useEffect(() => {
@@ -54,6 +68,24 @@ export function GenerateRecipeSheet({
       setTimeout(() => promptRef.current?.focus(), 50);
     }
   }, [open, activeTab]);
+
+  // ---------------------------------------------------------------------------
+  // Copy-prompt handler (must be before early return — hooks rule)
+  // ---------------------------------------------------------------------------
+
+  const handleCopyPrompt = useCallback(async () => {
+    if (!schema) return;
+    const promptText = buildRecipePrompt(schema);
+    try {
+      await copyToClipboard(promptText);
+    } catch {
+      // Clipboard unavailable — silently ignore
+      return;
+    }
+    setCopied(true);
+    setPulsingPaste(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [schema]);
 
   if (!open) return null;
 
@@ -270,6 +302,31 @@ export function GenerateRecipeSheet({
         ) : (
           /* Paste JSON form */
           <div className="flex flex-col flex-1 px-4 pt-4 pb-6 gap-4 overflow-y-auto">
+            {/* Copy-prompt button */}
+            <div className="flex flex-col gap-1.5">
+              <button
+                type="button"
+                onClick={handleCopyPrompt}
+                disabled={!schema}
+                className="w-full flex items-center justify-center gap-2 rounded-xl border border-(--recipe-border) text-(--recipe-muted) hover:border-(--recipe-accent) hover:text-(--recipe-text) font-medium px-4 py-3 text-sm transition-colors min-h-11 bg-(--recipe-surface) disabled:opacity-50"
+              >
+                {copied ? (
+                  <>
+                    <CheckIcon className="size-4" />
+                    Copied — go get your JSON
+                  </>
+                ) : (
+                  <>
+                    <ClipboardIcon className="size-4" />
+                    Copy prompt for ChatGPT / Claude
+                  </>
+                )}
+              </button>
+              <p className="text-xs text-(--recipe-muted) text-center">
+                Paste the response into the box below when you're done.
+              </p>
+            </div>
+
             <div>
               <label
                 htmlFor="paste-json"
@@ -283,10 +340,15 @@ export function GenerateRecipeSheet({
                 onChange={(e) => {
                   setJsonText(e.target.value);
                   setPasteError(undefined);
+                  if (pulsingPaste) setPulsingPaste(false);
                 }}
                 rows={8}
                 placeholder={'{"title": "...", "ingredients": [...], "instructions": [...]}'}
-                className="block w-full rounded-xl border border-(--recipe-border) bg-(--recipe-surface-raised) px-4 py-3 text-sm font-mono text-(--recipe-text) placeholder-(--recipe-muted) focus:border-(--recipe-primary) focus:outline-none focus:ring-2 focus:ring-[#d7c58f]/30 resize-none"
+                className={`block w-full rounded-xl border bg-(--recipe-surface-raised) px-4 py-3 text-sm font-mono text-(--recipe-text) placeholder-(--recipe-muted) focus:border-(--recipe-primary) focus:outline-none focus:ring-2 focus:ring-[#d7c58f]/30 resize-none transition-colors ${
+                  pulsingPaste
+                    ? "border-(--recipe-primary) animate-pulse"
+                    : "border-(--recipe-border)"
+                }`}
               />
             </div>
 
