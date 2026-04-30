@@ -142,9 +142,9 @@ export function formValuesToRecipeCreate(v: RecipeFormValues): RecipeCreate {
 // ---------------------------------------------------------------------------
 
 const inputCls =
-  "block w-full rounded-lg border border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-800 " +
-  "px-3 py-2.5 text-base leading-tight placeholder-stone-400 " +
-  "focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30 dark:text-stone-100";
+  "block w-full rounded-lg border border-(--recipe-border) bg-(--recipe-surface-raised) " +
+  "px-3 py-2.5 text-base leading-tight text-(--recipe-text) placeholder-(--recipe-muted) " +
+  "focus:border-(--recipe-primary) focus:outline-none focus:ring-2 focus:ring-[#d7c58f]/30";
 
 // ---------------------------------------------------------------------------
 // Small helpers
@@ -152,10 +152,7 @@ const inputCls =
 
 function Label({ htmlFor, children }: { htmlFor?: string; children: React.ReactNode }) {
   return (
-    <label
-      htmlFor={htmlFor}
-      className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1"
-    >
+    <label htmlFor={htmlFor} className="block text-sm font-medium text-(--recipe-text) mb-1">
       {children}
     </label>
   );
@@ -173,7 +170,7 @@ function FieldError({ errors }: { errors: unknown[] }) {
     })
     .filter(Boolean);
   if (msgs.length === 0) return null;
-  return <p className="mt-1 text-sm text-red-600 dark:text-red-400">{msgs.join(", ")}</p>;
+  return <p className="mt-1 text-sm text-(--recipe-destructive)">{msgs.join(", ")}</p>;
 }
 
 // ---------------------------------------------------------------------------
@@ -219,7 +216,7 @@ function TagPicker({
           <TagPill key={tag.id} tag={tag} onRemove={() => toggle(tag)} />
         ))}
         {selectedTags.length === 0 && (
-          <span className="text-sm text-stone-400">No tags selected</span>
+          <span className="text-sm text-(--recipe-muted)">No tags selected</span>
         )}
       </div>
 
@@ -229,7 +226,7 @@ function TagPicker({
             key={tag.id}
             type="button"
             onClick={() => toggle(tag)}
-            className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600 border border-stone-200 dark:border-stone-600 transition-colors min-h-7"
+            className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-(--recipe-surface-raised) text-(--recipe-muted) hover:bg-(--recipe-chip-bg) hover:text-(--recipe-chip-text) border border-(--recipe-border) transition-colors min-h-7"
           >
             + {tag.name}
           </button>
@@ -257,7 +254,7 @@ function TagPicker({
             type="button"
             onClick={handleCreate}
             disabled={upsertTag.isPending}
-            className="rounded-lg bg-amber-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50 min-h-11"
+            className="rounded-lg bg-(--recipe-primary) px-3 py-2 text-sm font-medium text-(--recipe-primary-text) disabled:opacity-50 min-h-11"
           >
             Add
           </button>
@@ -267,7 +264,7 @@ function TagPicker({
               setShowNew(false);
               setNewTagName("");
             }}
-            className="rounded-lg border border-stone-300 dark:border-stone-600 px-3 py-2 text-sm min-h-11"
+            className="rounded-lg border border-(--recipe-border) px-3 py-2 text-sm text-(--recipe-text) min-h-11"
           >
             <XIcon className="size-4" />
           </button>
@@ -276,7 +273,7 @@ function TagPicker({
         <button
           type="button"
           onClick={() => setShowNew(true)}
-          className="text-sm text-amber-700 dark:text-amber-400 underline-offset-2 hover:underline"
+          className="text-sm text-(--recipe-accent) underline-offset-2 hover:underline"
         >
           + Create new tag
         </button>
@@ -309,7 +306,7 @@ function IngredientRow({
   const upd = (key: keyof FormIngredient, value: string) => onChange({ ...ing, [key]: value });
 
   return (
-    <div className="rounded-lg border border-stone-200 dark:border-stone-700 p-3 space-y-2">
+    <div className="rounded-lg border border-(--recipe-border) bg-(--recipe-surface) p-3 space-y-2">
       <input
         type="text"
         value={ing.groupHeading}
@@ -358,7 +355,7 @@ function IngredientRow({
             disabled={index === 0}
             onClick={onMoveUp}
             aria-label="Move ingredient up"
-            className="p-1.5 rounded border border-stone-300 dark:border-stone-600 disabled:opacity-30 min-h-9 min-w-9 flex items-center justify-center"
+            className="p-1.5 rounded border border-(--recipe-border) hover:bg-(--recipe-surface-raised) disabled:opacity-30 min-h-9 min-w-9 flex items-center justify-center"
           >
             <ChevronUpIcon className="size-4" />
           </button>
@@ -367,7 +364,7 @@ function IngredientRow({
             disabled={index === total - 1}
             onClick={onMoveDown}
             aria-label="Move ingredient down"
-            className="p-1.5 rounded border border-stone-300 dark:border-stone-600 disabled:opacity-30 min-h-9 min-w-9 flex items-center justify-center"
+            className="p-1.5 rounded border border-(--recipe-border) hover:bg-(--recipe-surface-raised) disabled:opacity-30 min-h-9 min-w-9 flex items-center justify-center"
           >
             <ChevronDownIcon className="size-4" />
           </button>
@@ -376,7 +373,7 @@ function IngredientRow({
           type="button"
           onClick={onRemove}
           aria-label="Remove ingredient"
-          className="p-1.5 rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-950 min-h-9 min-w-9 flex items-center justify-center"
+          className="p-1.5 rounded text-(--recipe-destructive) hover:bg-[#2f1f1b] min-h-9 min-w-9 flex items-center justify-center"
         >
           <TrashIcon className="size-4" />
         </button>
@@ -583,9 +580,7 @@ export function RecipeForm({
 
       {/* Ingredients */}
       <div>
-        <h3 className="text-base font-semibold text-stone-800 dark:text-stone-200 mb-3">
-          Ingredients
-        </h3>
+        <h3 className="text-base font-semibold text-(--recipe-text) mb-3">Ingredients</h3>
         <form.Field name="ingredients">
           {(field) => (
             <div className="space-y-3">
@@ -628,7 +623,7 @@ export function RecipeForm({
                     },
                   ])
                 }
-                className="flex items-center gap-2 w-full justify-center rounded-lg border-2 border-dashed border-stone-300 dark:border-stone-600 py-3 text-sm text-stone-500 dark:text-stone-400 hover:border-amber-400 hover:text-amber-700 dark:hover:text-amber-400 transition-colors min-h-11"
+                className="flex items-center gap-2 w-full justify-center rounded-lg border-2 border-dashed border-(--recipe-border) py-3 text-sm text-(--recipe-muted) hover:border-(--recipe-accent) hover:text-(--recipe-primary) transition-colors min-h-11"
               >
                 <PlusIcon className="size-4" />
                 Add Ingredient
@@ -640,15 +635,13 @@ export function RecipeForm({
 
       {/* Instructions */}
       <div>
-        <h3 className="text-base font-semibold text-stone-800 dark:text-stone-200 mb-3">
-          Instructions
-        </h3>
+        <h3 className="text-base font-semibold text-(--recipe-text) mb-3">Instructions</h3>
         <form.Field name="instructions">
           {(field) => (
             <div className="space-y-2">
               {field.state.value.map((step, i) => (
                 <div key={i} className="flex gap-2 items-start">
-                  <span className="flex-shrink-0 w-7 h-10 flex items-center justify-center text-sm font-medium text-stone-400 dark:text-stone-500">
+                  <span className="shrink-0 w-7 h-10 flex items-center justify-center text-sm font-medium text-(--recipe-muted)">
                     {i + 1}.
                   </span>
                   <textarea
@@ -667,7 +660,7 @@ export function RecipeForm({
                     onClick={() => field.handleChange(field.state.value.filter((_, j) => j !== i))}
                     disabled={field.state.value.length === 1}
                     aria-label={`Remove step ${i + 1}`}
-                    className="p-2 rounded text-stone-400 hover:text-red-500 disabled:opacity-20 min-h-11 min-w-9 flex items-center"
+                    className="p-2 rounded text-(--recipe-muted) hover:text-(--recipe-destructive) disabled:opacity-20 min-h-11 min-w-9 flex items-center"
                   >
                     <XIcon className="size-4" />
                   </button>
@@ -676,7 +669,7 @@ export function RecipeForm({
               <button
                 type="button"
                 onClick={() => field.handleChange([...field.state.value, ""])}
-                className="flex items-center gap-2 w-full justify-center rounded-lg border-2 border-dashed border-stone-300 dark:border-stone-600 py-3 text-sm text-stone-500 dark:text-stone-400 hover:border-amber-400 hover:text-amber-700 dark:hover:text-amber-400 transition-colors min-h-11"
+                className="flex items-center gap-2 w-full justify-center rounded-lg border-2 border-dashed border-(--recipe-border) py-3 text-sm text-(--recipe-muted) hover:border-(--recipe-accent) hover:text-(--recipe-primary) transition-colors min-h-11"
               >
                 <PlusIcon className="size-4" />
                 Add Step
@@ -715,11 +708,9 @@ export function RecipeForm({
                 type="checkbox"
                 checked={field.state.value}
                 onChange={(e) => field.handleChange(e.target.checked)}
-                className="size-5 rounded border-stone-300 accent-amber-600"
+                className="size-5 rounded border-(--recipe-border) accent-(--recipe-primary)"
               />
-              <span className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                Mark as favourite
-              </span>
+              <span className="text-sm font-medium text-(--recipe-text)">Mark as favourite</span>
             </label>
           )}
         </form.Field>
@@ -727,19 +718,19 @@ export function RecipeForm({
 
       {/* Server error */}
       {serverError && (
-        <div className="rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 p-4">
-          <p className="text-sm text-red-700 dark:text-red-300">{serverError}</p>
+        <div className="rounded-lg bg-[#2f1f1b] border border-(--recipe-destructive) p-4">
+          <p className="text-sm text-(--recipe-destructive)">{serverError}</p>
         </div>
       )}
 
       {/* Sticky submit */}
-      <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] md:bottom-0 bg-stone-50/95 dark:bg-stone-950/95 backdrop-blur py-3 -mx-4 px-4 border-t border-stone-200 dark:border-stone-700 md:border-none md:bg-transparent md:backdrop-blur-none md:py-0 md:mx-0 md:px-0">
+      <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom,0))] md:bottom-0 bg-[#171512]/95 backdrop-blur py-3 -mx-4 px-4 border-t border-(--recipe-border) md:border-none md:bg-transparent md:backdrop-blur-none md:py-0 md:mx-0 md:px-0">
         <form.Subscribe selector={(s) => s.isSubmitting}>
           {(isSubmitting) => (
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full rounded-xl bg-amber-600 hover:bg-amber-700 active:bg-amber-800 disabled:opacity-60 text-white font-semibold py-3.5 text-base transition-colors min-h-14"
+              className="w-full rounded-xl bg-(--recipe-primary) hover:bg-[#b8c59f] active:bg-[#97a67d] disabled:opacity-60 text-(--recipe-primary-text) font-semibold py-3.5 text-base transition-colors min-h-14"
             >
               {isSubmitting ? "Saving…" : submitLabel}
             </button>

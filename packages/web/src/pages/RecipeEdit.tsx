@@ -36,8 +36,8 @@ export function RecipeEdit() {
   if (error || !recipe) {
     return (
       <Page className="py-8">
-        <div className="rounded-xl bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 p-6 text-center">
-          <p className="text-red-700 dark:text-red-300 font-medium">Recipe not found</p>
+        <div className="rounded-xl bg-[#2f1f1b] border border-(--recipe-destructive) p-6 text-center">
+          <p className="text-(--recipe-destructive) font-medium">Recipe not found</p>
         </div>
       </Page>
     );
@@ -45,9 +45,7 @@ export function RecipeEdit() {
 
   return (
     <Page className="py-4">
-      <h1 className="text-xl font-bold text-stone-900 dark:text-stone-100 mb-6">
-        Edit: {recipe.title}
-      </h1>
+      <h1 className="text-xl font-bold text-(--recipe-text) mb-6">Edit: {recipe.title}</h1>
       <RecipeForm
         defaultValues={detailToFormValues(recipe)}
         onSubmit={handleSubmit}

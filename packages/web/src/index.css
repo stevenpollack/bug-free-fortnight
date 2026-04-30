@@ -1,6 +1,23 @@
 @import "tailwindcss";
 
 @layer base {
+  :root {
+    color-scheme: dark;
+    --recipe-bg: #171512;
+    --recipe-surface: #211d18;
+    --recipe-surface-raised: #2a251f;
+    --recipe-text: #f4eee5;
+    --recipe-muted: #b8aa9a;
+    --recipe-border: #3a322a;
+    --recipe-primary: #a9b88f;
+    --recipe-primary-text: #1d2118;
+    --recipe-accent: #c58d63;
+    --recipe-focus: #d7c58f;
+    --recipe-destructive: #d97864;
+    --recipe-chip-bg: #2e3328;
+    --recipe-chip-text: #dde8ca;
+  }
+
   /* Safe-area utilities for iOS notch / home bar */
   .safe-top {
     padding-top: env(safe-area-inset-top, 0px);
@@ -29,5 +46,7 @@
   body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-color: var(--recipe-bg);
+    color: var(--recipe-text);
   }
 }

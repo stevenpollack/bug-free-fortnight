@@ -22,7 +22,7 @@ export function RecipeCreate() {
 
   return (
     <Page className="py-4">
-      <h1 className="text-xl font-bold text-stone-900 dark:text-stone-100 mb-6">New Recipe</h1>
+      <h1 className="text-xl font-bold text-(--recipe-text) mb-6">New Recipe</h1>
       <RecipeForm
         defaultValues={defaultFormValues()}
         onSubmit={handleSubmit}

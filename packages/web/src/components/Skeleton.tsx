@@ -2,7 +2,7 @@
 export function Skeleton({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`animate-pulse rounded bg-stone-200 dark:bg-stone-700 ${className}`}
+      className={`animate-pulse rounded bg-(--recipe-surface-raised) ${className}`}
       aria-hidden="true"
     />
   );
@@ -11,7 +11,7 @@ export function Skeleton({ className = "" }: { className?: string }) {
 /** Recipe card skeleton for the list page. */
 export function RecipeCardSkeleton() {
   return (
-    <div className="rounded-xl border border-stone-200 dark:border-stone-700 p-4 space-y-3">
+    <div className="rounded-xl border border-(--recipe-border) bg-(--recipe-surface) p-4 space-y-3">
       <Skeleton className="h-5 w-2/3" />
       <Skeleton className="h-3 w-1/3" />
       <div className="flex gap-2">

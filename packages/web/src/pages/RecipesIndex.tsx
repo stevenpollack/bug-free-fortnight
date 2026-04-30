@@ -62,7 +62,7 @@ export function RecipesIndex() {
     <Page className="py-2">
       {/* Search */}
       <div className="relative mb-3">
-        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-stone-400 pointer-events-none" />
+        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-(--recipe-muted) pointer-events-none" />
         <input
           type="search"
           value={localQ}
@@ -72,7 +72,7 @@ export function RecipesIndex() {
             if (e.key === "Enter") applySearch(localQ);
           }}
           placeholder="Search recipes…"
-          className="block w-full rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 pl-10 pr-4 py-3 text-base placeholder-stone-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30 dark:text-stone-100"
+          className="block w-full rounded-xl border border-(--recipe-border) bg-(--recipe-surface-raised) pl-10 pr-4 py-3 text-base text-(--recipe-text) placeholder-(--recipe-muted) focus:border-(--recipe-primary) focus:outline-none focus:ring-2 focus:ring-[#d7c58f]/30"
         />
       </div>
 
@@ -86,10 +86,10 @@ export function RecipesIndex() {
                 key={tag.id}
                 type="button"
                 onClick={() => toggleTag(tag.id)}
-                className={`flex-shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition-colors min-h-9 ${
+                className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition-colors min-h-9 ${
                   active
-                    ? "bg-amber-600 text-white"
-                    : "bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600"
+                    ? "bg-(--recipe-primary) text-(--recipe-primary-text)"
+                    : "bg-(--recipe-surface-raised) text-(--recipe-muted) hover:bg-(--recipe-chip-bg) hover:text-(--recipe-chip-text)"
                 }`}
               >
                 {tag.name}
@@ -106,8 +106,8 @@ export function RecipesIndex() {
           onClick={toggleFavourite}
           className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors min-h-9 ${
             search.favourite
-              ? "bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200"
-              : "text-stone-500 dark:text-stone-400 hover:text-amber-700 dark:hover:text-amber-400"
+              ? "bg-(--recipe-chip-bg) text-(--recipe-chip-text)"
+              : "text-(--recipe-muted) hover:text-(--recipe-primary)"
           }`}
         >
           <StarIcon className="size-4" filled={search.favourite} />
@@ -123,13 +123,13 @@ export function RecipesIndex() {
           ))}
         </div>
       ) : error ? (
-        <div className="rounded-xl bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 p-6 text-center">
-          <p className="text-red-700 dark:text-red-300 font-medium">Failed to load recipes</p>
-          <p className="text-sm text-red-500 dark:text-red-400 mt-1">{(error as Error).message}</p>
+        <div className="rounded-xl bg-[#2f1f1b] border border-(--recipe-destructive) p-6 text-center">
+          <p className="text-(--recipe-destructive) font-medium">Failed to load recipes</p>
+          <p className="text-sm text-[#e6a092] mt-1">{(error as Error).message}</p>
         </div>
       ) : recipes?.length === 0 ? (
-        <div className="rounded-xl border-2 border-dashed border-stone-200 dark:border-stone-700 p-10 text-center">
-          <p className="text-stone-500 dark:text-stone-400 mb-4">
+        <div className="rounded-xl border-2 border-dashed border-(--recipe-border) p-10 text-center">
+          <p className="text-(--recipe-muted) mb-4">
             {search.q || (search.tag ?? []).length > 0 || search.favourite
               ? "No recipes match your filters"
               : "No recipes yet — add your first one!"}
@@ -137,7 +137,7 @@ export function RecipesIndex() {
           {!search.q && !(search.tag ?? []).length && !search.favourite && (
             <Link
               to="/recipes/new"
-              className="inline-flex items-center gap-2 rounded-xl bg-amber-600 px-5 py-3 text-white font-semibold hover:bg-amber-700 transition-colors"
+              className="inline-flex items-center gap-2 rounded-xl bg-(--recipe-primary) px-5 py-3 text-(--recipe-primary-text) font-semibold hover:bg-[#b8c59f] transition-colors"
             >
               <PlusIcon className="size-5" />
               Add Recipe
@@ -154,30 +154,30 @@ export function RecipesIndex() {
                 key={recipe.id}
                 to="/recipes/$id"
                 params={{ id: recipe.id }}
-                className="flex gap-3 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 p-4 hover:border-amber-400 dark:hover:border-amber-600 transition-colors active:bg-stone-50 dark:active:bg-stone-800"
+                className="flex gap-3 rounded-xl border border-(--recipe-border) bg-(--recipe-surface) p-4 hover:border-(--recipe-accent) transition-colors active:bg-(--recipe-surface-raised)"
               >
                 {/* Thumbnail */}
                 {recipe.imageUrl && (
                   <img
                     src={recipe.imageUrl}
                     alt=""
-                    className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
+                    className="w-20 h-20 rounded-lg object-cover shrink-0"
                     loading="lazy"
                   />
                 )}
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
-                    <h2 className="font-semibold text-stone-900 dark:text-stone-100 leading-snug line-clamp-2">
+                    <h2 className="font-semibold text-(--recipe-text) leading-snug line-clamp-2">
                       {recipe.title}
                     </h2>
                     {recipe.favourite && (
-                      <StarIcon className="size-4 text-amber-500 flex-shrink-0 mt-0.5" filled />
+                      <StarIcon className="size-4 text-(--recipe-accent) shrink-0 mt-0.5" filled />
                     )}
                   </div>
 
                   {totalMins > 0 && (
-                    <p className="flex items-center gap-1 text-xs text-stone-500 dark:text-stone-400 mt-1">
+                    <p className="flex items-center gap-1 text-xs text-(--recipe-muted) mt-1">
                       <ClockIcon className="size-3.5" />
                       {totalMins} min
                     </p>

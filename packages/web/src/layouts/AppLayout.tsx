@@ -16,7 +16,7 @@ function InstallButton({ className }: { className?: string }) {
       onClick={install}
       className={
         className ??
-        "flex items-center gap-1.5 rounded-lg border border-amber-600 text-amber-700 dark:text-amber-400 px-3 py-2 text-sm font-medium min-h-11 transition-colors hover:bg-amber-50 dark:hover:bg-amber-900/30 active:bg-amber-100"
+        "flex items-center gap-1.5 rounded-lg border border-(--recipe-primary) text-(--recipe-primary) px-3 py-2 text-sm font-medium min-h-11 transition-colors hover:bg-(--recipe-chip-bg) active:bg-(--recipe-surface-raised)"
       }
     >
       Install
@@ -30,14 +30,11 @@ export function AppLayout() {
   const currentPath = location.pathname;
 
   return (
-    <div className="min-h-dvh flex flex-col bg-stone-50 dark:bg-stone-950 text-stone-900 dark:text-stone-100">
+    <div className="min-h-dvh flex flex-col bg-(--recipe-bg) text-(--recipe-text)">
       {/* Top app bar — visible on mobile, hidden on md+ to feel less mobile-y */}
-      <header className="md:hidden sticky top-0 z-30 bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-700 safe-top">
-        <div className="flex items-center justify-between px-4 h-14 max-w-screen-md mx-auto gap-2">
-          <Link
-            to="/"
-            className="text-lg font-bold text-amber-700 dark:text-amber-400 leading-none"
-          >
+      <header className="md:hidden sticky top-0 z-30 bg-(--recipe-surface) border-b border-(--recipe-border) safe-top">
+        <div className="flex items-center justify-between px-4 h-14 max-w-3xl mx-auto gap-2">
+          <Link to="/" className="text-lg font-bold text-(--recipe-primary) leading-none">
             Family Recipes
           </Link>
           <div className="flex items-center gap-2">
@@ -46,7 +43,7 @@ export function AppLayout() {
               type="button"
               onClick={() => navigate({ to: "/recipes/new" })}
               aria-label="New recipe"
-              className="flex items-center gap-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white px-3 py-2 text-sm font-medium min-h-11 transition-colors"
+              className="flex items-center gap-1.5 rounded-lg bg-(--recipe-primary) hover:bg-[#b8c59f] active:bg-[#97a67d] text-(--recipe-primary-text) px-3 py-2 text-sm font-medium min-h-11 transition-colors"
             >
               <PlusIcon className="size-4" />
               New
@@ -56,10 +53,10 @@ export function AppLayout() {
       </header>
 
       {/* Desktop top bar */}
-      <header className="hidden md:block sticky top-0 z-30 bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-700">
-        <div className="flex items-center justify-between px-6 h-16 max-w-screen-md mx-auto">
+      <header className="hidden md:block sticky top-0 z-30 bg-(--recipe-surface) border-b border-(--recipe-border)">
+        <div className="flex items-center justify-between px-6 h-16 max-w-3xl mx-auto">
           <div className="flex items-center gap-8">
-            <Link to="/" className="text-xl font-bold text-amber-700 dark:text-amber-400">
+            <Link to="/" className="text-xl font-bold text-(--recipe-primary)">
               Family Recipes
             </Link>
             <nav className="flex gap-1">
@@ -67,8 +64,8 @@ export function AppLayout() {
                 to="/"
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                   isActive(currentPath, "/") && !isActive(currentPath, "/import")
-                    ? "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
-                    : "text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100"
+                    ? "bg-(--recipe-chip-bg) text-(--recipe-chip-text)"
+                    : "text-(--recipe-muted) hover:text-(--recipe-text)"
                 }`}
               >
                 Recipes
@@ -77,8 +74,8 @@ export function AppLayout() {
                 to="/import"
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                   isActive(currentPath, "/import")
-                    ? "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
-                    : "text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100"
+                    ? "bg-(--recipe-chip-bg) text-(--recipe-chip-text)"
+                    : "text-(--recipe-muted) hover:text-(--recipe-text)"
                 }`}
               >
                 Import
@@ -91,7 +88,7 @@ export function AppLayout() {
               type="button"
               onClick={() => navigate({ to: "/recipes/new" })}
               aria-label="New recipe"
-              className="flex items-center gap-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white px-3 py-2 text-sm font-medium transition-colors"
+              className="flex items-center gap-1.5 rounded-lg bg-(--recipe-primary) hover:bg-[#b8c59f] active:bg-[#97a67d] text-(--recipe-primary-text) px-3 py-2 text-sm font-medium transition-colors"
             >
               <PlusIcon className="size-4" />
               New Recipe
@@ -106,14 +103,14 @@ export function AppLayout() {
       </main>
 
       {/* Bottom nav — mobile only */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-700 safe-bottom">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-(--recipe-surface) border-t border-(--recipe-border) safe-bottom">
         <div className="flex items-stretch h-16">
           <Link
             to="/"
             className={`flex-1 flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors min-h-11 ${
               isActive(currentPath, "/") && !isActive(currentPath, "/import")
-                ? "text-amber-700 dark:text-amber-400"
-                : "text-stone-500 dark:text-stone-400"
+                ? "text-(--recipe-primary)"
+                : "text-(--recipe-muted)"
             }`}
           >
             <BookOpenIcon className="size-6" />
@@ -122,9 +119,7 @@ export function AppLayout() {
           <Link
             to="/import"
             className={`flex-1 flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors min-h-11 ${
-              isActive(currentPath, "/import")
-                ? "text-amber-700 dark:text-amber-400"
-                : "text-stone-500 dark:text-stone-400"
+              isActive(currentPath, "/import") ? "text-(--recipe-primary)" : "text-(--recipe-muted)"
             }`}
           >
             <DownloadIcon className="size-6" />

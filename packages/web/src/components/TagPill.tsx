@@ -2,14 +2,14 @@ import type { Tag } from "../api/client";
 
 // A simple deterministic colour per category using a hash
 function categoryColor(category: string | null): string {
-  if (!category) return "bg-stone-100 text-stone-700 dark:bg-stone-700 dark:text-stone-200";
+  if (!category) return "bg-(--recipe-chip-bg) text-(--recipe-chip-text)";
   const categories: Record<string, string> = {
-    cuisine: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
-    method: "bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200",
-    meal_type: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
-    diet: "bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200",
+    cuisine: "bg-[#3a2a1f] text-[#f0cfb2]",
+    method: "bg-(--recipe-chip-bg) text-(--recipe-chip-text)",
+    meal_type: "bg-[#28342d] text-[#d8e7d0]",
+    diet: "bg-[#342d27] text-[#ead8c4]",
   };
-  return categories[category] ?? "bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200";
+  return categories[category] ?? "bg-(--recipe-surface-raised) text-(--recipe-muted)";
 }
 
 interface Props {
@@ -29,7 +29,7 @@ export function TagPill({ tag, onRemove, className = "" }: Props) {
           type="button"
           onClick={onRemove}
           aria-label={`Remove tag ${tag.name}`}
-          className="ml-0.5 -mr-0.5 rounded-full p-0.5 opacity-70 hover:opacity-100 focus-visible:outline-none focus-visible:ring-2"
+          className="ml-0.5 -mr-0.5 rounded-full p-0.5 opacity-70 hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d7c58f]/40"
         >
           <svg viewBox="0 0 8 8" className="size-2.5" aria-hidden="true">
             <line x1="1" y1="1" x2="7" y2="7" stroke="currentColor" strokeWidth={1.5} />
