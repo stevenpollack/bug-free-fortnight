@@ -68,3 +68,25 @@ test("favourite recipes show star icon", async () => {
     expect(getByText("Chicken Soup")).toBeInTheDocument();
   });
 });
+
+test("+ New Recipe button is present in page body (not header)", async () => {
+  const { getByRole } = await renderRecipes();
+
+  await waitFor(() => {
+    expect(getByRole("link", { name: /new recipe/i })).toBeInTheDocument();
+  });
+});
+
+test("Generate button is hidden when feature flag is off", async () => {
+  server.use(
+    http.get("*/api/config", () => {
+      return HttpResponse.json({ features: { recipeGeneration: false } });
+    }),
+  );
+
+  const { queryByRole } = await renderRecipes();
+
+  await waitFor(() => {
+    expect(queryByRole("button", { name: /^generate$/i })).not.toBeInTheDocument();
+  });
+});
