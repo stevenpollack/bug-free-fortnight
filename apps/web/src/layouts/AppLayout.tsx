@@ -1,9 +1,27 @@
 import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { BookOpenIcon, DownloadIcon, PlusIcon } from "../components/icons";
+import { useInstallPrompt } from "../lib/installPrompt";
 
 function isActive(current: string, path: string) {
   if (path === "/") return current === "/";
   return current.startsWith(path);
+}
+
+function InstallButton({ className }: { className?: string }) {
+  const { canInstall, install } = useInstallPrompt();
+  if (!canInstall) return null;
+  return (
+    <button
+      type="button"
+      onClick={install}
+      className={
+        className ??
+        "flex items-center gap-1.5 rounded-lg border border-amber-600 text-amber-700 dark:text-amber-400 px-3 py-2 text-sm font-medium min-h-11 transition-colors hover:bg-amber-50 dark:hover:bg-amber-900/30 active:bg-amber-100"
+      }
+    >
+      Install
+    </button>
+  );
 }
 
 export function AppLayout() {
@@ -15,22 +33,25 @@ export function AppLayout() {
     <div className="min-h-dvh flex flex-col bg-stone-50 dark:bg-stone-950 text-stone-900 dark:text-stone-100">
       {/* Top app bar — visible on mobile, hidden on md+ to feel less mobile-y */}
       <header className="md:hidden sticky top-0 z-30 bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-700 safe-top">
-        <div className="flex items-center justify-between px-4 h-14 max-w-screen-md mx-auto">
+        <div className="flex items-center justify-between px-4 h-14 max-w-screen-md mx-auto gap-2">
           <Link
             to="/"
             className="text-lg font-bold text-amber-700 dark:text-amber-400 leading-none"
           >
             Family Recipes
           </Link>
-          <button
-            type="button"
-            onClick={() => navigate({ to: "/recipes/new" })}
-            aria-label="New recipe"
-            className="flex items-center gap-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white px-3 py-2 text-sm font-medium min-h-11 transition-colors"
-          >
-            <PlusIcon className="size-4" />
-            New
-          </button>
+          <div className="flex items-center gap-2">
+            <InstallButton />
+            <button
+              type="button"
+              onClick={() => navigate({ to: "/recipes/new" })}
+              aria-label="New recipe"
+              className="flex items-center gap-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white px-3 py-2 text-sm font-medium min-h-11 transition-colors"
+            >
+              <PlusIcon className="size-4" />
+              New
+            </button>
+          </div>
         </div>
       </header>
 
@@ -64,15 +85,18 @@ export function AppLayout() {
               </Link>
             </nav>
           </div>
-          <button
-            type="button"
-            onClick={() => navigate({ to: "/recipes/new" })}
-            aria-label="New recipe"
-            className="flex items-center gap-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white px-3 py-2 text-sm font-medium transition-colors"
-          >
-            <PlusIcon className="size-4" />
-            New Recipe
-          </button>
+          <div className="flex items-center gap-2">
+            <InstallButton />
+            <button
+              type="button"
+              onClick={() => navigate({ to: "/recipes/new" })}
+              aria-label="New recipe"
+              className="flex items-center gap-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white px-3 py-2 text-sm font-medium transition-colors"
+            >
+              <PlusIcon className="size-4" />
+              New Recipe
+            </button>
+          </div>
         </div>
       </header>
 
