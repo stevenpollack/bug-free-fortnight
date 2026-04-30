@@ -154,6 +154,18 @@ export const ShoppingListItemCreate = z.object({
 export type ShoppingListItemCreate = z.infer<typeof ShoppingListItemCreate>;
 
 // ---------------------------------------------------------------------------
+// Recipe generation
+// ---------------------------------------------------------------------------
+
+export const RecipeGenerateBody = z.object({
+  prompt: z.string().min(1).max(1000),
+  servings: z.number().int().min(1).optional(),
+  dietary: z.string().max(500).optional(),
+});
+
+export type RecipeGenerateBody = z.infer<typeof RecipeGenerateBody>;
+
+// ---------------------------------------------------------------------------
 // Client log forwarding
 // ---------------------------------------------------------------------------
 

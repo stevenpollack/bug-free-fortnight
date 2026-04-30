@@ -1,15 +1,20 @@
 import type { RecipeCreate as RecipeCreatePayload } from "@api/schemas";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
 import { useCreateRecipe } from "../api/queries";
 import { CopyRecipePromptButton } from "../components/CopyRecipePromptButton";
 import { Page } from "../components/Page";
-import { RecipeForm, defaultFormValues } from "../components/RecipeForm";
+import { RecipeForm, defaultFormValues, recipeCreateToFormValues } from "../components/RecipeForm";
 
 export function RecipeCreate() {
   const navigate = useNavigate();
   const createRecipe = useCreateRecipe();
   const [serverError, setServerError] = useState<string | undefined>();
+
+  // Read generated recipe from router state (set by GenerateRecipeSheet)
+  const { location } = useRouterState();
+  const locationState = location.state as { generatedRecipe?: RecipeCreatePayload } | undefined;
+  const generatedRecipe = locationState?.generatedRecipe;
 
   const handleSubmit = async (data: RecipeCreatePayload) => {
     setServerError(undefined);
@@ -34,7 +39,9 @@ export function RecipeCreate() {
         <CopyRecipePromptButton />
       </div>
       <RecipeForm
-        defaultValues={defaultFormValues()}
+        defaultValues={
+          generatedRecipe ? recipeCreateToFormValues(generatedRecipe) : defaultFormValues()
+        }
         onSubmit={handleSubmit}
         submitLabel="Create Recipe"
         serverError={serverError}

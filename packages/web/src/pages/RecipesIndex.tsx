@@ -1,10 +1,12 @@
+import type { RecipeCreate } from "@api/schemas";
 import { Link, getRouteApi, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useRecipesList, useTags } from "../api/queries";
+import { useAppConfig, useRecipesList, useTags } from "../api/queries";
+import { GenerateRecipeSheet } from "../components/GenerateRecipeSheet";
 import { Page } from "../components/Page";
 import { RecipeCardSkeleton } from "../components/Skeleton";
 import { TagPill } from "../components/TagPill";
-import { ClockIcon, PlusIcon, SearchIcon, StarIcon } from "../components/icons";
+import { ClockIcon, PlusIcon, SearchIcon, SparklesIcon, StarIcon } from "../components/icons";
 
 const Route = getRouteApi("/");
 
@@ -16,6 +18,7 @@ export function RecipesIndex() {
   const search = Route.useSearch() as SearchParams;
   const navigate = useNavigate({ from: "/" });
   const [localQ, setLocalQ] = useState(search.q ?? "");
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const {
     data: recipes,
@@ -27,6 +30,7 @@ export function RecipesIndex() {
     favourite: search.favourite || undefined,
   });
   const { data: allTags = [] } = useTags();
+  const { data: appConfig } = useAppConfig();
 
   const tagMap = new Map(allTags.map((t) => [t.id, t]));
 
@@ -57,6 +61,18 @@ export function RecipesIndex() {
       replace: true,
     });
   };
+
+  const handleGenerated = (recipe: RecipeCreate) => {
+    setSheetOpen(false);
+    // Pass generated recipe via router state so RecipeCreate can pre-fill the form.
+    // Cast needed: HistoryState is an open extension point but lacks user-defined fields.
+    navigate({
+      to: "/recipes/new",
+      state: { generatedRecipe: recipe } as unknown as Parameters<typeof navigate>[0]["state"],
+    });
+  };
+
+  const canGenerate = appConfig?.features.recipeGeneration === true;
 
   return (
     <Page className="py-2">
@@ -112,6 +128,25 @@ export function RecipesIndex() {
         >
           <StarIcon className="size-4" filled={search.favourite} />
           Favourites only
+        </button>
+      </div>
+
+      {/* Action row */}
+      <div className="flex gap-2 mb-4 md:justify-end">
+        <Link
+          to="/recipes/new"
+          className="flex-1 md:flex-none flex items-center justify-center gap-2 rounded-xl bg-(--recipe-primary) hover:bg-[#b8c59f] active:bg-[#97a67d] text-(--recipe-primary-text) font-semibold px-4 py-3 text-sm transition-colors min-h-11"
+        >
+          <PlusIcon className="size-4" />
+          New Recipe
+        </Link>
+        <button
+          type="button"
+          onClick={() => setSheetOpen(true)}
+          className="flex-1 md:flex-none flex items-center justify-center gap-2 rounded-xl border border-(--recipe-border) text-(--recipe-muted) hover:border-(--recipe-accent) hover:text-(--recipe-text) font-medium px-4 py-3 text-sm transition-colors min-h-11 bg-(--recipe-surface)"
+        >
+          <SparklesIcon className="size-4" />
+          Generate
         </button>
       </div>
 
@@ -196,6 +231,14 @@ export function RecipesIndex() {
           })}
         </div>
       )}
+
+      {/* Generate Recipe Sheet */}
+      <GenerateRecipeSheet
+        open={sheetOpen}
+        canGenerate={canGenerate}
+        onClose={() => setSheetOpen(false)}
+        onGenerated={handleGenerated}
+      />
     </Page>
   );
 }
