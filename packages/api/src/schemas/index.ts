@@ -101,3 +101,21 @@ export const healthSchema = z.object({
 });
 
 export type Health = z.infer<typeof healthSchema>;
+
+// ---------------------------------------------------------------------------
+// Client log forwarding
+// ---------------------------------------------------------------------------
+
+export const ClientLogBody = z.object({
+  level: z.enum(["warn", "error"]),
+  message: z.string().min(1).max(2000),
+  fields: z
+    .record(z.string(), z.unknown())
+    .refine((v) => Object.keys(v).length <= 50, {
+      message: "fields must have 50 keys or fewer",
+    })
+    .optional(),
+  scope: z.string().max(100).optional(),
+});
+
+export type ClientLogBody = z.infer<typeof ClientLogBody>;

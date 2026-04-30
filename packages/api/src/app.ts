@@ -6,6 +6,7 @@ import { logger } from "./logger";
 import { requestLogger } from "./middleware/requestLogger";
 import { exportRouter } from "./routes/export";
 import { importRouter } from "./routes/import";
+import { logRouter } from "./routes/log";
 import { recipeRouter } from "./routes/recipes";
 import { tagRouter } from "./routes/tags";
 import type { HonoEnv } from "./types";
@@ -41,10 +42,11 @@ export function createApp({ webDistDir }: AppOptions = {}) {
 
   app.get("/api/health", (c) => c.json({ ok: true }));
 
-  app.route("/api", recipeRouter);
-  app.route("/api", tagRouter);
   app.route("/api", exportRouter);
   app.route("/api", importRouter);
+  app.route("/api", logRouter);
+  app.route("/api", recipeRouter);
+  app.route("/api", tagRouter);
 
   if (webDistDir) {
     // Serve static assets (JS, CSS, images, etc.) from the built SPA directory.
