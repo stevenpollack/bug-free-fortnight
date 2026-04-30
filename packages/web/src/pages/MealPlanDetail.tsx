@@ -4,6 +4,7 @@ import type { DayKey, MealPlanSlot } from "../api/client";
 import { useActivateMealPlan, useMealPlan, useUpdateMealPlan, useUpsertSlot } from "../api/queries";
 import { Page } from "../components/Page";
 import { RecipePickerSheet } from "../components/RecipePickerSheet";
+import { ShoppingList } from "../components/ShoppingList";
 import { XIcon } from "../components/icons";
 
 const Route = getRouteApi("/meal-plans/$id");
@@ -244,6 +245,9 @@ export function MealPlanDetail() {
           />
         ))}
       </div>
+
+      {/* Shopping list */}
+      <ShoppingList planId={id} />
 
       {/* Recipe picker sheet */}
       {pickerDay && (
