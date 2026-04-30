@@ -82,7 +82,10 @@ export async function safeFetch(
     // Follow same-origin redirects only
     if (response.status >= 300 && response.status < 400) {
       if (redirectCount >= MAX_REDIRECTS) {
-        log.warn({ code: "TOO_MANY_REDIRECTS", url: currentUrl, redirectCount }, "safeFetch rejected");
+        log.warn(
+          { code: "TOO_MANY_REDIRECTS", url: currentUrl, redirectCount },
+          "safeFetch rejected",
+        );
         throw new SafeFetchError("TOO_MANY_REDIRECTS", `Exceeded ${MAX_REDIRECTS} redirects`);
       }
 
@@ -104,7 +107,10 @@ export async function safeFetch(
         );
       }
 
-      log.debug({ from: currentUrl, to: redirectUrl.toString(), redirectCount }, "safeFetch redirect");
+      log.debug(
+        { from: currentUrl, to: redirectUrl.toString(), redirectCount },
+        "safeFetch redirect",
+      );
       currentUrl = redirectUrl.toString();
       redirectCount++;
       continue;

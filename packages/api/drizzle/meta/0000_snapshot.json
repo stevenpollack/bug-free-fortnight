@@ -91,12 +91,8 @@
           "name": "ingredients_recipe_id_recipes_id_fk",
           "tableFrom": "ingredients",
           "tableTo": "recipes",
-          "columnsFrom": [
-            "recipe_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["recipe_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -130,12 +126,8 @@
           "name": "recipe_tags_recipe_id_recipes_id_fk",
           "tableFrom": "recipe_tags",
           "tableTo": "recipes",
-          "columnsFrom": [
-            "recipe_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["recipe_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -143,12 +135,8 @@
           "name": "recipe_tags_tag_id_tags_id_fk",
           "tableFrom": "recipe_tags",
           "tableTo": "tags",
-          "columnsFrom": [
-            "tag_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tag_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -156,10 +144,7 @@
       "compositePrimaryKeys": {
         "recipe_tags_recipe_id_tag_id_pk": {
           "name": "recipe_tags_recipe_id_tag_id_pk",
-          "columns": [
-            "recipe_id",
-            "tag_id"
-          ]
+          "columns": ["recipe_id", "tag_id"]
         }
       },
       "uniqueConstraints": {},
@@ -293,9 +278,7 @@
         "tags_name_unique": {
           "name": "tags_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},

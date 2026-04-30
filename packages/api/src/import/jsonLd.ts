@@ -17,9 +17,10 @@ function isRecipe(obj: unknown): obj is JsonLdObject {
   return false;
 }
 
-function findRecipeInValue(
-  value: unknown,
-): { recipe: JsonLdObject | null; found: "top" | "graph" | "none" } {
+function findRecipeInValue(value: unknown): {
+  recipe: JsonLdObject | null;
+  found: "top" | "graph" | "none";
+} {
   if (isRecipe(value)) return { recipe: value as JsonLdObject, found: "top" };
 
   if (typeof value === "object" && value !== null) {

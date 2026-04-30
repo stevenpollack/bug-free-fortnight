@@ -1,9 +1,9 @@
 import { sql } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { logger } from "../logger";
 import { tags } from "./schema";
 import type * as schema from "./schema";
 import { newId } from "./uuid";
-import { logger } from "../logger";
 
 export interface CanonicalTag {
   name: string;

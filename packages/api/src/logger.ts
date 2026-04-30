@@ -4,8 +4,7 @@ import pino from "pino";
 const isTest = process.env.NODE_ENV === "test" || process.env.BUN_TEST === "1";
 
 const isPretty =
-  !isTest &&
-  (process.env.NODE_ENV !== "production" || process.env.LOG_PRETTY === "1");
+  !isTest && (process.env.NODE_ENV !== "production" || process.env.LOG_PRETTY === "1");
 
 export const logger = pino({
   level: isTest ? "silent" : (process.env.LOG_LEVEL ?? "info"),

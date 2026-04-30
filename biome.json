@@ -33,11 +33,11 @@
       "dist",
       ".husky",
       "bun.lockb",
-      "apps/web/node_modules",
-      "apps/api/node_modules",
-      "apps/web/tsconfig*.json",
-      "apps/api/tsconfig*.json",
-      "apps/api/drizzle"
+      "packages/web/node_modules",
+      "packages/api/node_modules",
+      "packages/web/tsconfig*.json",
+      "packages/api/tsconfig*.json",
+      "packages/api/drizzle"
     ]
   }
 }

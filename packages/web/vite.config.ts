@@ -19,26 +19,45 @@ export default defineConfig(({ mode }) => {
         registerType: "autoUpdate",
         devOptions: { enabled: false },
         manifest: {
-          workbox: {
-            runtimeCaching: [
-              {
-                urlPattern: ({ url, request }) =>
-                  url.pathname.startsWith("/api/recipes") && request.method === "GET",
-                handler: "NetworkFirst",
-                options: {
-                  cacheName: "api-recipes",
-                  networkTimeoutSeconds: 5,
-                  expiration: {
-                    maxEntries: 100,
-                    maxAgeSeconds: 3 * 24 * 60 * 60, // 3 days
-                  },
-                  cacheableResponse: {
-                    statuses: [0, 200],
-                  },
+          name: "Family Recipes",
+          short_name: "Recipes",
+          description: "A self-hosted family recipe tracker.",
+          theme_color: "#d97706",
+          background_color: "#ffffff",
+          display: "standalone",
+          start_url: "/",
+          scope: "/",
+          orientation: "portrait",
+          icons: [
+            { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+            { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+            {
+              src: "/icons/icon-512-maskable.png",
+              sizes: "512x512",
+              type: "image/png",
+              purpose: "maskable",
+            },
+          ],
+        },
+        workbox: {
+          runtimeCaching: [
+            {
+              urlPattern: ({ url, request }: { url: URL; request: Request }) =>
+                url.pathname.startsWith("/api/recipes") && request.method === "GET",
+              handler: "NetworkFirst",
+              options: {
+                cacheName: "api-recipes",
+                networkTimeoutSeconds: 5,
+                expiration: {
+                  maxEntries: 100,
+                  maxAgeSeconds: 3 * 24 * 60 * 60,
+                },
+                cacheableResponse: {
+                  statuses: [0, 200],
                 },
               },
-            ],
-          },
+            },
+          ],
         },
       }),
     ],
