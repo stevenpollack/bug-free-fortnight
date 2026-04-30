@@ -2,7 +2,6 @@ import type { RecipeCreate as RecipeCreatePayload } from "@api/schemas";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
 import { useCreateRecipe } from "../api/queries";
-import { CopyRecipePromptButton } from "../components/CopyRecipePromptButton";
 import { Page } from "../components/Page";
 import { RecipeForm, defaultFormValues, recipeCreateToFormValues } from "../components/RecipeForm";
 
@@ -34,10 +33,7 @@ export function RecipeCreate() {
       >
         ← Recipes
       </Link>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-(--recipe-text)">New Recipe</h1>
-        <CopyRecipePromptButton />
-      </div>
+      <h1 className="text-xl font-bold text-(--recipe-text) mb-6">New Recipe</h1>
       <RecipeForm
         defaultValues={
           generatedRecipe ? recipeCreateToFormValues(generatedRecipe) : defaultFormValues()
