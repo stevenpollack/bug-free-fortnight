@@ -1,0 +1,40 @@
+name: family-recipes
+
+services:
+  postgres:
+    image: postgres:17.5-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - recipes_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    # Postgres port is intentionally NOT published to the host in production.
+    # To connect with psql for debugging, temporarily add:
+    #   ports:
+    #     - "5432:5432"
+
+  app:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      PORT: "3001"
+      NODE_ENV: production
+    ports:
+      - "${APP_PORT:-3001}:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  recipes_pg_data: {}
