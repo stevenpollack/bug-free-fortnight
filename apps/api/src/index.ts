@@ -1,4 +1,7 @@
-import { app } from "./app";
+import { createApp } from "./app";
+
+const webDistDir = process.env.WEB_DIST_DIR;
+const app = createApp({ webDistDir });
 
 export { app };
 
@@ -17,5 +20,9 @@ if (import.meta.main) {
 
   const port = Number(process.env.PORT ?? 3001);
   Bun.serve({ port, fetch: app.fetch });
+
+  if (webDistDir) {
+    console.log(`[startup] Serving SPA from ${webDistDir}`);
+  }
   console.log(`[startup] API listening on port ${port}`);
 }
