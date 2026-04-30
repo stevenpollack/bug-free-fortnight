@@ -1,12 +1,5 @@
-import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
-import {
-  BookOpenIcon,
-  CalendarIcon,
-  DownloadIcon,
-  MoonIcon,
-  PlusIcon,
-  SunIcon,
-} from "../components/icons";
+import { Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { BookOpenIcon, CalendarIcon, DownloadIcon, MoonIcon, SunIcon } from "../components/icons";
 import { useInstallPrompt } from "../lib/installPrompt";
 import { useTheme } from "../lib/useTheme";
 
@@ -47,7 +40,6 @@ function ThemeToggleButton() {
 }
 
 export function AppLayout() {
-  const navigate = useNavigate();
   const { location } = useRouterState();
   const currentPath = location.pathname;
 
@@ -62,15 +54,6 @@ export function AppLayout() {
           <div className="flex items-center gap-2">
             <ThemeToggleButton />
             <InstallButton />
-            <button
-              type="button"
-              onClick={() => navigate({ to: "/recipes/new" })}
-              aria-label="New recipe"
-              className="flex items-center gap-1.5 rounded-lg bg-(--recipe-primary) hover:bg-[#b8c59f] active:bg-[#97a67d] text-(--recipe-primary-text) px-3 py-2 text-sm font-medium min-h-11 transition-colors"
-            >
-              <PlusIcon className="size-4" />
-              New
-            </button>
           </div>
         </div>
       </header>
@@ -118,15 +101,6 @@ export function AppLayout() {
           <div className="flex items-center gap-2">
             <ThemeToggleButton />
             <InstallButton />
-            <button
-              type="button"
-              onClick={() => navigate({ to: "/recipes/new" })}
-              aria-label="New recipe"
-              className="flex items-center gap-1.5 rounded-lg bg-(--recipe-primary) hover:bg-[#b8c59f] active:bg-[#97a67d] text-(--recipe-primary-text) px-3 py-2 text-sm font-medium transition-colors"
-            >
-              <PlusIcon className="size-4" />
-              New Recipe
-            </button>
           </div>
         </div>
       </header>
