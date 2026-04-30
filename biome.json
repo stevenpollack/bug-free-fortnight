@@ -30,7 +30,8 @@
       "apps/web/node_modules",
       "apps/api/node_modules",
       "apps/web/tsconfig*.json",
-      "apps/api/tsconfig*.json"
+      "apps/api/tsconfig*.json",
+      "apps/api/drizzle"
     ]
   }
 }
