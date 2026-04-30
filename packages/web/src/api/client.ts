@@ -1,4 +1,5 @@
 import type { RecipeCreate, RecipeUpdate } from "@api/schemas";
+import { getAnthropicKey } from "../lib/anthropicKey";
 import { logger } from "../lib/logger";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3001";
@@ -162,6 +163,17 @@ async function req<T>(path: string, options?: RequestInit): Promise<T> {
   return json as T;
 }
 
+/** Like req() but attaches X-Anthropic-Key when the user has one saved. */
+function genReq<T>(path: string, options?: RequestInit, overrideKey?: string): Promise<T> {
+  const key = overrideKey ?? getAnthropicKey();
+  const headers: Record<string, string> = {};
+  if (key) headers["x-anthropic-key"] = key;
+  return req<T>(path, {
+    ...options,
+    headers: { ...options?.headers, ...headers },
+  });
+}
+
 // ---------------------------------------------------------------------------
 // API functions
 // ---------------------------------------------------------------------------
@@ -221,12 +233,17 @@ export const client = {
     return req<AppConfig>("/config");
   },
 
-  // Generate recipe
+  // Generate recipe — forwards user's API key if present
   generateRecipe(body: { prompt: string; servings?: number; dietary?: string }) {
-    return req<{ recipe: RecipeCreate }>("/recipes/generate", {
+    return genReq<{ recipe: RecipeCreate }>("/recipes/generate", {
       method: "POST",
       body: JSON.stringify(body),
     });
+  },
+
+  // Test an Anthropic key against our backend proxy
+  testAnthropicKey(key: string) {
+    return genReq<{ ok: boolean }>("/anthropic/test-key", { method: "POST" }, key);
   },
 
   // Import

@@ -257,6 +257,11 @@ export const handlers = [
     });
   }),
 
+  // Anthropic key test endpoint
+  http.post("*/api/anthropic/test-key", () => {
+    return HttpResponse.json({ ok: true });
+  }),
+
   // Client-side log endpoint
   http.post("*/api/log", () => {
     return new HttpResponse(null, { status: 204 });

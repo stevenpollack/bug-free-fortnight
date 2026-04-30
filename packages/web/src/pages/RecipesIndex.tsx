@@ -1,7 +1,7 @@
 import type { RecipeCreate } from "@api/schemas";
 import { Link, getRouteApi, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useAppConfig, useRecipesList, useTags } from "../api/queries";
+import { useCanGenerate, useRecipesList, useTags } from "../api/queries";
 import { GenerateRecipeSheet } from "../components/GenerateRecipeSheet";
 import { Page } from "../components/Page";
 import { RecipeCardSkeleton } from "../components/Skeleton";
@@ -40,7 +40,6 @@ export function RecipesIndex() {
     favourite: search.favourite || undefined,
   });
   const { data: allTags = [] } = useTags();
-  const { data: appConfig } = useAppConfig();
 
   const tagMap = new Map(allTags.map((t) => [t.id, t]));
 
@@ -87,7 +86,7 @@ export function RecipesIndex() {
     setSheetOpen(true);
   };
 
-  const canGenerate = appConfig?.features.recipeGeneration === true;
+  const canGenerate = useCanGenerate();
 
   return (
     <Page className="py-2">

@@ -36,7 +36,9 @@ Do not include any fields outside this shape. Return raw JSON only.`;
 // ---------------------------------------------------------------------------
 
 generateRouter.post("/recipes/generate", zValidator("json", RecipeGenerateBody), async (c) => {
-  if (!process.env.ANTHROPIC_API_KEY) {
+  const apiKey = c.req.header("x-anthropic-key") ?? process.env.ANTHROPIC_API_KEY;
+
+  if (!apiKey) {
     return c.json(
       {
         error: {
@@ -56,7 +58,7 @@ generateRouter.post("/recipes/generate", zValidator("json", RecipeGenerateBody),
   if (body.dietary) parts.push(`Dietary requirements: ${body.dietary}`);
   const userMessage = parts.join("\n");
 
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const anthropic = new Anthropic({ apiKey });
 
   let rawText: string;
   try {

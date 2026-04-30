@@ -29,11 +29,11 @@ mock.module("@anthropic-ai/sdk", () => {
 
 const app = createApp();
 
-function post(body: unknown) {
+function post(body: unknown, extraHeaders?: Record<string, string>) {
   return app.fetch(
     new Request("http://localhost/api/recipes/generate", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...extraHeaders },
       body: JSON.stringify(body),
     }),
   );
@@ -67,12 +67,32 @@ describe("POST /api/recipes/generate", () => {
     mockCreate.mockReset();
   });
 
-  test("returns 503 when ANTHROPIC_API_KEY is not set", async () => {
+  test("returns 503 when ANTHROPIC_API_KEY is not set and no header provided", async () => {
     process.env.ANTHROPIC_API_KEY = undefined;
     const res = await post({ prompt: "Make me some pasta" });
     expect(res.status).toBe(503);
     const body = (await res.json()) as { error: { code: string } };
     expect(body.error.code).toBe("GENERATION_UNAVAILABLE");
+  });
+
+  test("uses X-Anthropic-Key header when env is unset", async () => {
+    process.env.ANTHROPIC_API_KEY = undefined;
+    mockCreate.mockResolvedValue({
+      content: [{ type: "text", text: validRecipeJson }],
+    });
+
+    const res = await post({ prompt: "Make me some pasta" }, { "x-anthropic-key": "header-key" });
+    expect(res.status).toBe(200);
+  });
+
+  test("X-Anthropic-Key header takes precedence over env var", async () => {
+    process.env.ANTHROPIC_API_KEY = "env-key";
+    mockCreate.mockResolvedValue({
+      content: [{ type: "text", text: validRecipeJson }],
+    });
+
+    const res = await post({ prompt: "Make me some pasta" }, { "x-anthropic-key": "header-key" });
+    expect(res.status).toBe(200);
   });
 
   test("returns 400 when request body is invalid (empty prompt)", async () => {
