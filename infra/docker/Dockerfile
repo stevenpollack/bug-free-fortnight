@@ -33,10 +33,13 @@ USER bun
 WORKDIR /app
 
 # Copy workspace manifests so bun can resolve the workspace graph on prod install.
-COPY --chown=bun:bun package.json bun.lock ./
+# Both apps/web and apps/api are workspace members declared in the root package.json,
+# so both manifests must exist for bun install to succeed even though only the API runs here.
+COPY --chown=bun:bun package.json bun.lock bunfig.toml ./
 COPY --chown=bun:bun apps/api/package.json ./apps/api/
+COPY --chown=bun:bun apps/web/package.json ./apps/web/
 
-# Install production dependencies only (no devDeps, no web package needed here).
+# Install production dependencies only (no devDeps).
 RUN bun install --frozen-lockfile --production
 
 # Copy API source and migration files required at runtime.
