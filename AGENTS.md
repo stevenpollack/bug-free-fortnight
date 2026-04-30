@@ -119,3 +119,18 @@ This must trigger Husky's hook installation (e.g. via a `prepare` script). Verif
 - Prefer existing local patterns once the repo has them.
 - Add abstractions only when they remove real duplication or complexity.
 - Add focused tests around risky behavior, especially recipe import parsing, ingredient parsing, ingredient scaling, and importer safeguards.
+
+## Testing Preferences
+
+- Component tests use `@testing-library/react` with `@happy-dom/global-registrator` and MSW for network mocking.
+- Use destructured queries from `render()`, not the global `screen` object. This keeps queries scoped to the rendered container.
+  ```ts
+  // Correct
+  const { getByRole, queryByText } = render(<Component />);
+  expect(getByRole("button")).toBeInTheDocument();
+
+  // Incorrect — do not use
+  render(<Component />);
+  expect(screen.getByRole("button")).toBeInTheDocument();
+  ```
+- Use `userEvent.setup()` before interactions (not `fireEvent`).
