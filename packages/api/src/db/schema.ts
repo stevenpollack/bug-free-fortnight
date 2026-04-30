@@ -103,3 +103,36 @@ export type MealPlan = typeof mealPlans.$inferSelect;
 export type NewMealPlan = typeof mealPlans.$inferInsert;
 export type MealPlanSlot = typeof mealPlanSlots.$inferSelect;
 export type NewMealPlanSlot = typeof mealPlanSlots.$inferInsert;
+
+// ---------------------------------------------------------------------------
+// Shopping list
+// ---------------------------------------------------------------------------
+
+export const shoppingLists = pgTable("shopping_lists", {
+  id: uuid("id").notNull().primaryKey(),
+  planId: uuid("plan_id")
+    .notNull()
+    .unique()
+    .references(() => mealPlans.id, { onDelete: "cascade" }),
+  generatedAt: timestamp("generated_at", { withTimezone: true }).notNull().defaultNow(),
+  planSnapshotAt: timestamp("plan_snapshot_at", { withTimezone: true }).notNull(),
+});
+
+export const shoppingListItems = pgTable("shopping_list_items", {
+  id: uuid("id").notNull().primaryKey(),
+  listId: uuid("list_id")
+    .notNull()
+    .references(() => shoppingLists.id, { onDelete: "cascade" }),
+  displayOrder: integer("display_order").notNull(),
+  item: text("item").notNull(),
+  quantity: numeric("quantity", { precision: 10, scale: 4 }),
+  unit: text("unit"),
+  checked: boolean("checked").notNull().default(false),
+  custom: boolean("custom").notNull().default(false),
+  notes: text("notes"),
+});
+
+export type ShoppingList = typeof shoppingLists.$inferSelect;
+export type NewShoppingList = typeof shoppingLists.$inferInsert;
+export type ShoppingListItem = typeof shoppingListItems.$inferSelect;
+export type NewShoppingListItem = typeof shoppingListItems.$inferInsert;

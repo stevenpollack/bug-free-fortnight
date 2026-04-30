@@ -15,6 +15,13 @@
       "when": 1777512774898,
       "tag": "0001_add_meal_planner",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777512774899,
+      "tag": "0002_add_shopping_list",
+      "breakpoints": true
     }
   ]
 }
