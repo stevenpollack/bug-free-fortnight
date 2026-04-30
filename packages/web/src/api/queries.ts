@@ -16,6 +16,7 @@ export const queryKeys = {
   mealPlan: (id: string) => ["meal-plans", id] as const,
   shoppingList: (planId: string) => ["shopping-list", planId] as const,
   recipeSchema: () => ["schema", "recipe"] as const,
+  mealPlanSchema: () => ["schema", "meal-plan"] as const,
 };
 
 // ---------------------------------------------------------------------------
@@ -397,5 +398,30 @@ export function useRecipeSchema() {
     queryKey: queryKeys.recipeSchema(),
     queryFn: () => client.getRecipeSchema(),
     staleTime: Number.POSITIVE_INFINITY,
+  });
+}
+
+export function useMealPlanSchema() {
+  return useQuery({
+    queryKey: queryKeys.mealPlanSchema(),
+    queryFn: () => client.getMealPlanSchema(),
+    staleTime: Number.POSITIVE_INFINITY,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Meal plan generation mutation
+// ---------------------------------------------------------------------------
+
+export function useGenerateMealPlan(planId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { prompt: string } | { rawJson: string }) =>
+      client.generateMealPlan(planId, body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.mealPlan(planId) });
+      qc.invalidateQueries({ queryKey: queryKeys.mealPlans() });
+      qc.invalidateQueries({ queryKey: ["recipes"] });
+    },
   });
 }

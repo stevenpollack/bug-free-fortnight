@@ -257,6 +257,28 @@ export const handlers = [
     });
   }),
 
+  // Meal plan schema
+  http.get("*/api/schemas/meal-plan", () => {
+    return HttpResponse.json({
+      $schema: "https://json-schema.org/draft/2020-12/schema",
+      type: "object",
+      properties: {
+        slots: { type: "array", items: { type: "object" } },
+      },
+      required: ["slots"],
+    });
+  }),
+
+  // Generate meal plan
+  http.post("*/api/meal-plans/generate", () => {
+    return HttpResponse.json({ ok: true, slotCount: 1 });
+  }),
+
+  // Upsert slot
+  http.put("*/api/meal-plans/:id/slots/:day", ({ params }) => {
+    return HttpResponse.json({ mealPlan: { ...mockPlanDetail, id: String(params.id) } });
+  }),
+
   // Client-side log endpoint
   http.post("*/api/log", () => {
     return new HttpResponse(null, { status: 204 });
