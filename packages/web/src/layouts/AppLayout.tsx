@@ -1,5 +1,12 @@
 import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
-import { BookOpenIcon, DownloadIcon, MoonIcon, PlusIcon, SunIcon } from "../components/icons";
+import {
+  BookOpenIcon,
+  CalendarIcon,
+  DownloadIcon,
+  MoonIcon,
+  PlusIcon,
+  SunIcon,
+} from "../components/icons";
 import { useInstallPrompt } from "../lib/installPrompt";
 import { useTheme } from "../lib/useTheme";
 
@@ -96,6 +103,16 @@ export function AppLayout() {
               >
                 Import
               </Link>
+              <Link
+                to="/meal-plans"
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  isActive(currentPath, "/meal-plans")
+                    ? "bg-(--recipe-chip-bg) text-(--recipe-chip-text)"
+                    : "text-(--recipe-muted) hover:text-(--recipe-text)"
+                }`}
+              >
+                Planner
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-2">
@@ -141,6 +158,17 @@ export function AppLayout() {
           >
             <DownloadIcon className="size-6" />
             Import
+          </Link>
+          <Link
+            to="/meal-plans"
+            className={`flex-1 flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors min-h-11 ${
+              isActive(currentPath, "/meal-plans")
+                ? "text-(--recipe-primary)"
+                : "text-(--recipe-muted)"
+            }`}
+          >
+            <CalendarIcon className="size-6" />
+            Planner
           </Link>
         </div>
       </nav>

@@ -7,6 +7,7 @@ import { requestLogger } from "./middleware/requestLogger";
 import { exportRouter } from "./routes/export";
 import { importRouter } from "./routes/import";
 import { logRouter } from "./routes/log";
+import { mealPlanRouter } from "./routes/mealPlans";
 import { recipeRouter } from "./routes/recipes";
 import { tagRouter } from "./routes/tags";
 import type { HonoEnv } from "./types";
@@ -25,7 +26,7 @@ export function createApp({ webDistDir }: AppOptions = {}) {
       "/api/*",
       cors({
         origin: process.env.CORS_ORIGIN?.split(",") ?? ["http://localhost:5173"],
-        allowMethods: ["OPTIONS", "GET", "POST", "PUT", "DELETE"],
+        allowMethods: ["OPTIONS", "GET", "POST", "PUT", "PATCH", "DELETE"],
       }),
     );
   }
@@ -45,6 +46,7 @@ export function createApp({ webDistDir }: AppOptions = {}) {
   app.route("/api", exportRouter);
   app.route("/api", importRouter);
   app.route("/api", logRouter);
+  app.route("/api", mealPlanRouter);
   app.route("/api", recipeRouter);
   app.route("/api", tagRouter);
 

@@ -19,6 +19,8 @@ export const testDb = drizzle(testSql, { schema });
  * Call from beforeEach in every integration test file.
  */
 export async function resetDb(): Promise<void> {
-  await testSql.unsafe("TRUNCATE recipes, ingredients, tags, recipe_tags RESTART IDENTITY CASCADE");
+  await testSql.unsafe(
+    "TRUNCATE meal_plan_slots, meal_plans, recipes, ingredients, tags, recipe_tags RESTART IDENTITY CASCADE",
+  );
   await seedCanonicalTags(testDb);
 }

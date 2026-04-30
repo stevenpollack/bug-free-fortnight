@@ -56,6 +56,37 @@ export interface ImportResult {
 }
 
 // ---------------------------------------------------------------------------
+// Meal planner types
+// ---------------------------------------------------------------------------
+
+export interface MealPlanSlot {
+  recipe_id: string | null;
+  recipe_title: string | null;
+  recipe_image_url: string | null;
+  note: string | null;
+}
+
+export type DayKey = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+
+export type SlotsMap = Record<DayKey, MealPlanSlot | null>;
+
+export interface MealPlanDetail {
+  id: string;
+  name: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  slots: SlotsMap;
+}
+
+export interface MealPlanListItem {
+  id: string;
+  name: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+// ---------------------------------------------------------------------------
 // Error type
 // ---------------------------------------------------------------------------
 
@@ -156,6 +187,48 @@ export const client = {
     return req<ImportResult>("/import/preview", {
       method: "POST",
       body: JSON.stringify({ url }),
+    });
+  },
+
+  // Meal plans
+  listMealPlans() {
+    return req<{ mealPlans: MealPlanListItem[] }>("/meal-plans");
+  },
+
+  getMealPlan(id: string) {
+    return req<{ mealPlan: MealPlanDetail }>(`/meal-plans/${id}`);
+  },
+
+  createMealPlan(name?: string | null) {
+    return req<{ mealPlan: MealPlanDetail }>("/meal-plans", {
+      method: "POST",
+      body: JSON.stringify({ name: name ?? null }),
+    });
+  },
+
+  updateMealPlan(id: string, body: { name?: string | null }) {
+    return req<{ mealPlan: MealPlanDetail }>(`/meal-plans/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+  },
+
+  deleteMealPlan(id: string) {
+    return req<void>(`/meal-plans/${id}`, { method: "DELETE" });
+  },
+
+  activateMealPlan(id: string) {
+    return req<{ mealPlan: MealPlanDetail }>(`/meal-plans/${id}/activate`, { method: "POST" });
+  },
+
+  upsertSlot(
+    planId: string,
+    day: DayKey,
+    body: { recipe_id?: string | null; note?: string | null },
+  ) {
+    return req<{ mealPlan: MealPlanDetail }>(`/meal-plans/${planId}/slots/${day}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
     });
   },
 };
