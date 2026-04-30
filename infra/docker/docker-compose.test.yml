@@ -1,0 +1,21 @@
+# Integration-test Postgres profile.
+# WARNING: Hardcoded credentials — for automated testing ONLY. Do not use in production.
+name: family-recipes-test
+
+services:
+  postgres:
+    image: postgres:17.5-alpine
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: test
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test -d test"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
