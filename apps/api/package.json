@@ -6,14 +6,22 @@
   "scripts": {
     "dev": "bun run --watch src/index.ts",
     "build": "tsc --noEmit",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push",
+    "db:migrate": "bun run src/db/migrate.ts",
+    "db:seed": "bun run src/db/seed.ts"
   },
   "dependencies": {
+    "drizzle-orm": "0.45.2",
     "hono": "4.12.15",
+    "postgres": "3.4.9",
+    "uuidv7": "1.2.1",
     "zod": "4.3.6"
   },
   "devDependencies": {
     "@types/bun": "1.3.13",
+    "drizzle-kit": "0.31.10",
     "typescript": "6.0.3"
   }
 }
