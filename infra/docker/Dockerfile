@@ -10,7 +10,7 @@ COPY package.json bun.lock ./
 COPY apps/web/package.json ./apps/web/
 COPY apps/api/package.json ./apps/api/
 
-RUN bun install --frozen-lockfile --production=false
+RUN bun install --frozen-lockfile
 
 # ── Stage 2: build the web app and typecheck the API ─────────────────────────
 FROM deps AS build
@@ -40,7 +40,9 @@ COPY --chown=bun:bun apps/api/package.json ./apps/api/
 COPY --chown=bun:bun apps/web/package.json ./apps/web/
 
 # Install production dependencies only (no devDeps).
-RUN bun install --frozen-lockfile --production
+# --ignore-scripts skips the root `prepare` (Husky), which is irrelevant in the runtime image
+# and would fail because Husky lives in devDependencies.
+RUN bun install --frozen-lockfile --production --ignore-scripts
 
 # Copy API source and migration files required at runtime.
 COPY --chown=bun:bun apps/api/src ./apps/api/src
