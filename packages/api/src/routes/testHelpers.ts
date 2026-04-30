@@ -20,7 +20,7 @@ export const testDb = drizzle(testSql, { schema });
  */
 export async function resetDb(): Promise<void> {
   await testSql.unsafe(
-    "TRUNCATE meal_plan_slots, meal_plans, recipes, ingredients, tags, recipe_tags RESTART IDENTITY CASCADE",
+    "TRUNCATE shopping_list_items, shopping_lists, meal_plan_slots, meal_plans, recipes, ingredients, tags, recipe_tags RESTART IDENTITY CASCADE",
   );
   await seedCanonicalTags(testDb);
 }

@@ -246,6 +246,9 @@ mealPlanRouter.put(
         },
       });
 
+    // Bump the plan's updatedAt so the shopping list can detect staleness
+    await db.update(mealPlans).set({ updatedAt: new Date() }).where(eq(mealPlans.id, planId));
+
     const planDetail = await fetchPlanDetail(planId);
     const log = c.var.logger ?? rootLogger;
     log.info({ planId, day }, "meal plan slot upserted");

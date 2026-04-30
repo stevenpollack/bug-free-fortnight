@@ -87,6 +87,34 @@ export interface MealPlanListItem {
 }
 
 // ---------------------------------------------------------------------------
+// Shopping list types
+// ---------------------------------------------------------------------------
+
+export interface ShoppingListItem {
+  id: string;
+  display_order: number;
+  item: string;
+  quantity: number | null;
+  unit: string | null;
+  checked: boolean;
+  custom: boolean;
+  notes: string | null;
+}
+
+export interface ShoppingList {
+  id: string;
+  plan_id: string;
+  generated_at: string;
+  plan_snapshot_at: string;
+  items: ShoppingListItem[];
+}
+
+export interface ShoppingListResponse {
+  shoppingList: ShoppingList | null;
+  plan_updated_at: string;
+}
+
+// ---------------------------------------------------------------------------
 // Error type
 // ---------------------------------------------------------------------------
 
@@ -228,6 +256,50 @@ export const client = {
   ) {
     return req<{ mealPlan: MealPlanDetail }>(`/meal-plans/${planId}/slots/${day}`, {
       method: "PUT",
+      body: JSON.stringify(body),
+    });
+  },
+
+  // Shopping list
+  generateShoppingList(planId: string) {
+    return req<{ shoppingList: ShoppingList }>(`/meal-plans/${planId}/shopping-list/generate`, {
+      method: "POST",
+    });
+  },
+
+  getShoppingList(planId: string) {
+    return req<ShoppingListResponse>(`/meal-plans/${planId}/shopping-list`);
+  },
+
+  patchShoppingListItem(
+    planId: string,
+    itemId: string,
+    body: {
+      checked?: boolean;
+      item?: string;
+      quantity?: number | null;
+      unit?: string | null;
+      notes?: string | null;
+    },
+  ) {
+    return req<{ item: ShoppingListItem }>(`/meal-plans/${planId}/shopping-list/items/${itemId}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+  },
+
+  deleteShoppingListItem(planId: string, itemId: string) {
+    return req<void>(`/meal-plans/${planId}/shopping-list/items/${itemId}`, {
+      method: "DELETE",
+    });
+  },
+
+  addShoppingListItem(
+    planId: string,
+    body: { item: string; quantity?: number | null; unit?: string | null; notes?: string | null },
+  ) {
+    return req<{ item: ShoppingListItem }>(`/meal-plans/${planId}/shopping-list/items`, {
+      method: "POST",
       body: JSON.stringify(body),
     });
   },

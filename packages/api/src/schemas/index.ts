@@ -133,6 +133,27 @@ export const MealPlanUpdate = z.object({
 export type MealPlanUpdate = z.infer<typeof MealPlanUpdate>;
 
 // ---------------------------------------------------------------------------
+// Shopping list
+// ---------------------------------------------------------------------------
+
+export const ShoppingListItemPatch = z.object({
+  checked: z.boolean().optional(),
+  item: z.string().min(1).optional(),
+  quantity: z.number().positive().nullable().optional(),
+  unit: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
+});
+export type ShoppingListItemPatch = z.infer<typeof ShoppingListItemPatch>;
+
+export const ShoppingListItemCreate = z.object({
+  item: z.string().min(1),
+  quantity: z.number().positive().nullable().optional(),
+  unit: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
+});
+export type ShoppingListItemCreate = z.infer<typeof ShoppingListItemCreate>;
+
+// ---------------------------------------------------------------------------
 // Client log forwarding
 // ---------------------------------------------------------------------------
 
