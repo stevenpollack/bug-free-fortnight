@@ -1,6 +1,6 @@
 import type { RecipeCreate, RecipeUpdate } from "@api/schemas";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { DayKey } from "./client";
+import type { DayKey, ShoppingList, ShoppingListItem } from "./client";
 import { client } from "./client";
 
 // ---------------------------------------------------------------------------
@@ -14,6 +14,7 @@ export const queryKeys = {
   tags: () => ["tags"] as const,
   mealPlans: () => ["meal-plans"] as const,
   mealPlan: (id: string) => ["meal-plans", id] as const,
+  shoppingList: (planId: string) => ["shopping-list", planId] as const,
 };
 
 // ---------------------------------------------------------------------------
@@ -207,6 +208,158 @@ export function useUpsertSlot(planId: string) {
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: queryKeys.mealPlans() });
       qc.setQueryData(queryKeys.mealPlan(planId), data);
+      // Invalidate the shopping list so staleness indicator refreshes
+      qc.invalidateQueries({ queryKey: queryKeys.shoppingList(planId) });
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Shopping list queries
+// ---------------------------------------------------------------------------
+
+export function useShoppingList(planId: string) {
+  return useQuery({
+    queryKey: queryKeys.shoppingList(planId),
+    queryFn: () => client.getShoppingList(planId),
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Shopping list mutations
+// ---------------------------------------------------------------------------
+
+export function useGenerateShoppingList(planId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => client.generateShoppingList(planId),
+    onSuccess: (data) => {
+      qc.setQueryData(queryKeys.shoppingList(planId), {
+        shoppingList: data.shoppingList,
+        // plan_updated_at not returned by generate; trigger a full refetch
+        plan_updated_at: data.shoppingList.plan_snapshot_at,
+      });
+    },
+  });
+}
+
+export function useToggleShoppingListItem(planId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ itemId, checked }: { itemId: string; checked: boolean }) =>
+      client.patchShoppingListItem(planId, itemId, { checked }),
+    // Optimistic update
+    onMutate: async ({ itemId, checked }) => {
+      await qc.cancelQueries({ queryKey: queryKeys.shoppingList(planId) });
+      const previous = qc.getQueryData(queryKeys.shoppingList(planId));
+      qc.setQueryData(
+        queryKeys.shoppingList(planId),
+        (old: { shoppingList: ShoppingList | null; plan_updated_at: string } | undefined) => {
+          if (!old?.shoppingList) return old;
+          return {
+            ...old,
+            shoppingList: {
+              ...old.shoppingList,
+              items: old.shoppingList.items.map((item) =>
+                item.id === itemId ? { ...item, checked } : item,
+              ),
+            },
+          };
+        },
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        qc.setQueryData(queryKeys.shoppingList(planId), context.previous);
+      }
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.shoppingList(planId) });
+    },
+  });
+}
+
+export function usePatchShoppingListItem(planId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      itemId,
+      body,
+    }: {
+      itemId: string;
+      body: {
+        item?: string;
+        quantity?: number | null;
+        unit?: string | null;
+        notes?: string | null;
+      };
+    }) => client.patchShoppingListItem(planId, itemId, body),
+    onSuccess: (data) => {
+      qc.setQueryData(
+        queryKeys.shoppingList(planId),
+        (old: { shoppingList: ShoppingList | null; plan_updated_at: string } | undefined) => {
+          if (!old?.shoppingList) return old;
+          return {
+            ...old,
+            shoppingList: {
+              ...old.shoppingList,
+              items: old.shoppingList.items.map((item: ShoppingListItem) =>
+                item.id === data.item.id ? data.item : item,
+              ),
+            },
+          };
+        },
+      );
+    },
+  });
+}
+
+export function useDeleteShoppingListItem(planId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (itemId: string) => client.deleteShoppingListItem(planId, itemId),
+    onSuccess: (_data, itemId) => {
+      qc.setQueryData(
+        queryKeys.shoppingList(planId),
+        (old: { shoppingList: ShoppingList | null; plan_updated_at: string } | undefined) => {
+          if (!old?.shoppingList) return old;
+          return {
+            ...old,
+            shoppingList: {
+              ...old.shoppingList,
+              items: old.shoppingList.items.filter((item: ShoppingListItem) => item.id !== itemId),
+            },
+          };
+        },
+      );
+    },
+  });
+}
+
+export function useAddShoppingListItem(planId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: {
+      item: string;
+      quantity?: number | null;
+      unit?: string | null;
+      notes?: string | null;
+    }) => client.addShoppingListItem(planId, body),
+    onSuccess: (data) => {
+      qc.setQueryData(
+        queryKeys.shoppingList(planId),
+        (old: { shoppingList: ShoppingList | null; plan_updated_at: string } | undefined) => {
+          if (!old?.shoppingList) return old;
+          return {
+            ...old,
+            shoppingList: {
+              ...old.shoppingList,
+              items: [...old.shoppingList.items, data.item],
+            },
+          };
+        },
+      );
     },
   });
 }
