@@ -2,3 +2,8 @@
 [install]
 # Only install package versions published at least 3 days ago
 minimumReleaseAge = 259200
+
+[test]
+# Exclude integration tests from the default `bun test` run.
+# Integration tests require a live Postgres and run via `bun run test:integration`.
+exclude = ["**/*.integration.test.ts"]
