@@ -109,7 +109,7 @@ This must trigger Husky's hook installation (e.g. via a `prepare` script). Verif
 - Commit coherent increments as work progresses; do not batch unrelated changes into one commit.
 - Use conventional commit messages and keep them brief.
 - Author every commit as the agent's model name with a `<model-slug>@noreply.local` email. Examples: `GPT-5.5 <gpt-5.5@noreply.local>`, `Claude-Opus-4.7 <claude-opus-4.7@noreply.local>`.
-- Set the author per-invocation. Pass `--author="Name <email>"` to `git commit` and set `GIT_COMMITTER_NAME` / `GIT_COMMITTER_EMAIL` environment variables for that command. Do not run `git config user.name` or `git config user.email`, and do not modify any global or repo-level git config.
+- Pass `--author="Name <email>"` to `git commit`. Do not set `GIT_COMMITTER_NAME` / `GIT_COMMITTER_EMAIL` environment variables. Do not run `git config user.name` or `git config user.email`, and do not modify any global or repo-level git config.
 - Do not amend commits unless the user explicitly asks.
 
 ## Engineering Preferences
