@@ -16,6 +16,12 @@ services:
       retries: 5
       start_period: 10s
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+        compress: "true"
     # Postgres port is intentionally NOT published to the host in production.
     # To connect with psql for debugging, temporarily add:
     #   ports:
@@ -35,6 +41,12 @@ services:
       postgres:
         condition: service_healthy
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+        compress: "true"
 
 volumes:
   recipes_pg_data: {}
