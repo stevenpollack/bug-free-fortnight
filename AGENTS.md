@@ -1,17 +1,8 @@
 # Agent Instructions
 
-This repo is for a private household recipe tracker. Build incrementally, keep the implementation simple, and preserve the planning constraints below unless the user changes them.
+This repo is for a private household recipe tracker. Build incrementally, keep the implementation simple, and preserve the constraints below unless the user changes them.
 
-The current plan lives at `.cursor/plans/recipe_tracker_app_*.plan.md`. Read it before starting non-trivial work; if it is missing, ask the user for the current plan.
-
-## Current Priority
-
-Before feature work, create the repo scaffold and proof-of-correctness checks:
-
-1. Scaffold the Bun workspace (`apps/web`, `apps/api`, `infra/docker`) using Bun and Vite templates where they fit.
-2. Configure Biome, Husky, Tailwind, TypeScript, `bun test`, and build scripts.
-3. Establish a root `bun run check` command that runs typecheck, lint/format, tests, and build.
-4. Run the checks and fix failures before moving to data or feature work.
+Plans for specific features live at `.cursor/plans/*.plan.md`. Read the relevant plan before starting non-trivial work on that feature.
 
 ## Stack Constraints
 
@@ -19,31 +10,35 @@ Before feature work, create the repo scaffold and proof-of-correctness checks:
 - Bun as the runtime and package manager. Do not use npm.
 - Pin every dependency version exactly. Do not use `^`, `~`, `latest`, or semver ranges of any kind. This rule is non-negotiable.
 - Frontend: React + Vite, mobile-first, installable PWA, Screen Wake Lock API for cooking mode.
-- Styling: Tailwind CSS.
+- Styling: Tailwind CSS with `var(--recipe-*)` CSS custom properties. Never hardcode colors — always reference the design tokens.
 - Frontend libraries: TanStack Query, TanStack Router, TanStack Form.
 - Backend: Hono on Bun.
 - Database: PostgreSQL.
 - Data layer: Drizzle with the `postgres` (postgres-js) driver. UUIDv7 ids.
-- Migrations: run on API startup behind a Postgres advisory lock.
-- Validation/shared contracts: Zod schemas live in the API and are re-exported to the web app via a TS path alias. Do not create a `packages/shared` workspace package.
+- Migrations: run on API startup behind a Postgres advisory lock. Register new migrations in `packages/api/drizzle/meta/_journal.json`.
+- Validation/shared contracts: Zod schemas live in `packages/api/src/schemas/index.ts` and are re-exported to the web app via the `@api/schemas` path alias. Do not create a `packages/shared` workspace package.
 - Lint/format: Biome.
 - Pre-commit hooks: Husky.
 - Tests: `bun test` (no Vitest).
 
 ## Product Context
 
-The app should help track and edit recipes the user's family likes. It should support:
+The app helps a family track, plan, and cook recipes. Current features:
 
 - Mobile-first recipe browsing and editing for phones and iPad-sized screens.
-- Manual recipe entry.
-- RecipeTin Eats URL import from pages such as `https://www.recipetineats.com/french-toast/#recipe`, using JSON-LD recipe metadata and `parse-ingredient` for ingredient lines.
+- Manual recipe entry and RecipeTin Eats URL import (JSON-LD + `parse-ingredient`).
 - Editable ingredients and instructions after import; the original imported line is always preserved.
 - Scaling ingredient quantities from a base servings value.
-- Free-form tags with an optional category facet (e.g. `cuisine`, `method`, `meal_type`); seed only a small canonical set.
+- Free-form tags with an optional category facet (e.g. `cuisine`, `method`, `meal_type`); a small canonical seed ships with the app.
+- Weekly meal planner (dinner only, Mon–Sun, pin as "this week").
+- Shopping list generation from meal plans with ingredient consolidation.
+- AI recipe generation via Claude (feature-flagged on `ANTHROPIC_API_KEY`).
+- Self-documenting recipe schema (`GET /api/schemas/recipe`) and a "Copy AI prompt" button for use with any LLM.
+- Dark/light theme toggle.
 - JSON export endpoint for backup.
-- Hot-linked recipe images in v1; no user-uploaded photos.
+- Hot-linked recipe images; no user-uploaded photos.
 
-Authentication is intentionally out of scope for v1. Assume private network or household-only deployment.
+Authentication is intentionally out of scope. Assume private network or household-only deployment.
 
 ## Importer Safety Rules
 
@@ -77,32 +72,23 @@ Kubernetes manifests are out of scope for v1; keep the structure compatible so t
 
 ## Completion Criteria For Agents
 
-Before saying work is complete, run the proof-of-correctness checks:
+Before saying work is complete, run:
 
 ```sh
 bun run check
 ```
 
-If `check` is not yet wired up, run the closest available equivalents and report what is missing:
-
-```sh
-bun run typecheck
-bun run lint
-bun run build
-bun test
-```
-
-Report any check that could not be run and why.
+This runs typecheck, Biome lint/format, tests, and production build. All must pass.
 
 ## Bootstrap
 
-On a fresh checkout, agents should run:
+On a fresh checkout:
 
 ```sh
 bun install
 ```
 
-This must trigger Husky's hook installation (e.g. via a `prepare` script). Verify hooks are installed before relying on them.
+This triggers Husky hook installation via the `prepare` script.
 
 ## Commit Workflow
 

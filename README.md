@@ -1,69 +1,67 @@
 # Family Recipes
 
-A self-hosted recipe tracker for a private household. The app is intended for tracking family favourites, importing recipes from RecipeTin Eats, editing ingredients and quantities, tagging recipes, filtering by cooking context, and scaling servings.
+A self-hosted recipe tracker for a private household. Track family favourites, import recipes from RecipeTin Eats, edit ingredients and quantities, tag recipes, filter by cooking context, scale servings, plan weekly dinners, and generate shopping lists.
 
-## How to safely run locally during development
+## How to run locally
 
-Make sure you've created/configured the `packages/{api,web}/.env.development(.local)` files from the `.env.example`s and
+Configure the `packages/{api,web}/.env.development.local` files from the `.env.example`s, then:
 
 ```bash
 bun run start:dev:db
 bun dev
 ```
 
-The app should be available at http://localhost:5174 ...
+The app is available at http://localhost:5174, API at http://localhost:3001.
 
-## Planned Stack
+## Stack
 
 - Runtime and package manager: Bun
 - Frontend: React + Vite + TypeScript, mobile-first, installable PWA, Screen Wake Lock for cooking mode
-- Styling: Tailwind CSS
+- Styling: Tailwind CSS with `var(--recipe-*)` design tokens (dark/light themes)
 - Frontend libraries: TanStack Query, TanStack Router, TanStack Form
 - Backend: Hono on Bun
 - Database: PostgreSQL
 - ORM and driver: Drizzle with the `postgres` (postgres-js) driver
 - IDs: UUIDv7
-- Validation: Zod (co-located in the API, re-exported to the web via a TS path alias; no separate shared package)
+- Validation: Zod (co-located in the API, re-exported to the web via `@api/schemas` path alias)
 - Linting and formatting: Biome
 - Git hooks: Husky
-- Tests: `bun test`
+- Tests: `bun test` + happy-dom + Testing Library + MSW for component tests
 - Deployment: Docker Compose, single app container plus Postgres
 
-All dependencies must be pinned exactly. Do not use npm. Do not use `^`, `~`, `latest`, or any semver range.
+All dependencies are pinned exactly. Do not use npm or semver ranges.
 
-## Product Goals
+## Features
 
-- Mobile-first browsing and editing, optimized for phones and iPad-sized screens.
-- Installable as a home-screen PWA.
-- Cooking mode keeps the screen awake while reading a recipe in the kitchen.
-- Manual recipe entry with structured ingredients, instructions, tags, source link, notes, and base servings.
-- RecipeTin Eats URL import using JSON-LD recipe metadata, with a review/edit step before saving and ingredient lines parsed into structured fields.
-- Ingredient scaling from base servings while preserving the original imported text.
-- Free-form tags with an optional category facet (e.g. `cuisine`, `method`, `meal_type`). A small canonical seed ships with the app; the household adds more from the UI.
-- JSON export endpoint for backups, alongside `pg_dump` for full database backups.
+- **Recipes** — Manual entry, RecipeTin Eats URL import (JSON-LD), structured ingredients with scaling, free-form tags, cooking mode (screen wake lock).
+- **Meal Planner** — Assign dinner recipes to Mon–Sun, pin a plan as "this week", support leftovers via notes.
+- **Shopping List** — Generate a consolidated ingredient list from a meal plan, check off items, add custom items, staleness detection when the plan changes.
+- **AI Recipe Generation** — Generate recipes via Claude API (optional `ANTHROPIC_API_KEY`). Paste JSON tab as a fallback for users without an API key.
+- **Self-Documenting Schema** — `GET /api/schemas/recipe` returns the live JSON Schema for the recipe format. A "Copy AI prompt" button in the UI builds a ready-to-paste LLM prompt from it.
+- **Theming** — Dark (default) and light mode, toggled from the header, persisted to localStorage.
+- **Export** — JSON export endpoint for backups, alongside `pg_dump`.
 
 ## Importer Safety
 
-The recipe importer is restricted in v1 to:
+The recipe importer is restricted to:
 
-- Allowlist of `https://www.recipetineats.com/*` URLs.
+- Allowlist of `https://www.recipetineats.com/*` URLs only.
 - 10 second fetch timeout.
 - 2 MB max response size.
 - No cross-origin redirect following.
 
-These constraints exist even though v1 runs on a private network.
-
-## Intended Repo Shape
+## Repo Structure
 
 ```text
-apps/
-  api/   # Hono API on Bun, also serves the built web app in production
+packages/
+  api/   # Hono API on Bun, serves the built web app in production
   web/   # React + Vite SPA (installable PWA)
 infra/
   docker/  # Dockerfile and Docker Compose
+docs/      # Supplementary documentation (prompt templates, etc.)
 ```
 
-Schemas and types are shared between `apps/api` and `apps/web` via a TypeScript path alias, not a separate package.
+Schemas and types are shared between `packages/api` and `packages/web` via the `@api/schemas` TypeScript path alias.
 
 ## Verification
 
