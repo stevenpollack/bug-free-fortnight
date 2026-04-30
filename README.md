@@ -2,6 +2,25 @@
 
 A self-hosted recipe tracker for a private household. The app is intended for tracking family favourites, importing recipes from RecipeTin Eats, editing ingredients and quantities, tagging recipes, filtering by cooking context, and scaling servings.
 
+## How to safely run locally during development
+Make sure you've created/configured the `.env.local` file from `.env.example` and
+
+```bash
+APP_PORT=3011 docker compose \
+  -p family-recipes-dev \
+  -f infra/docker/docker-compose.yml \
+  --env-file .env.local \
+  up --build
+```
+
+The app should be available at http://localhost:3011 ... 
+
+To bring the app down:
+
+```bash
+docker compose -p family-recipes-dev -f infra/docker/docker-compose.yml --env-file .env down
+```
+
 ## Planned Stack
 
 - Runtime and package manager: Bun
@@ -135,6 +154,21 @@ docker compose -f infra/docker/docker-compose.yml --env-file .env up --build
 ```
 
 When a pre-built image is published to a registry, use `docker compose pull` before `up`.
+
+### Logging
+
+The API uses [Pino](https://getpino.io/) for structured logging:
+
+- In development, logs are pretty-printed to the terminal. In production, logs are emitted as newline-delimited JSON.
+- Set `LOG_PRETTY=1` to force pretty-printing in production (e.g. when tailing logs interactively).
+- Adjust verbosity with `LOG_LEVEL` (default: `info`). Valid levels: `trace`, `debug`, `info`, `warn`, `error`, `fatal`.
+- Set `DEBUG_SQL=1` to log every SQL query sent to Postgres (off by default; very verbose).
+- Every HTTP request receives a `requestId` (UUIDv7) that appears on both the request-start and request-completion log lines, making it easy to correlate entries.
+
+The web frontend uses a small console-based logger (`packages/web/src/lib/logger.ts`):
+
+- In development (`import.meta.env.DEV`), debug-level logs are emitted to the browser console.
+- In production, debug logs are suppressed by default. Set `localStorage.debug = '1'` in the browser console to re-enable them without a rebuild.
 
 ### Installing to the home screen (PWA)
 
