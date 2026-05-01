@@ -6,7 +6,6 @@ import { db } from "../db/client";
 import { mealPlanSlots, mealPlans, recipes } from "../db/schema";
 import { newId } from "../db/uuid";
 import { HttpError } from "../errors";
-import { logger as rootLogger } from "../logger";
 import { DayOfWeek, MealPlanCreate, MealPlanUpdate } from "../schemas/index";
 import type { HonoEnv } from "../types";
 
@@ -116,7 +115,7 @@ mealPlanRouter.post("/meal-plans", zValidator("json", MealPlanCreate), async (c)
   });
 
   const plan = await fetchPlanDetail(id);
-  const log = c.var.logger ?? rootLogger;
+  const log = c.var.logger;
   log.info({ planId: id }, "meal plan created");
   return c.json({ mealPlan: plan }, 201);
 });
@@ -150,7 +149,7 @@ mealPlanRouter.patch("/meal-plans/:id", zValidator("json", MealPlanUpdate), asyn
     .where(eq(mealPlans.id, id));
 
   const plan = await fetchPlanDetail(id);
-  const log = c.var.logger ?? rootLogger;
+  const log = c.var.logger;
   log.info({ planId: id }, "meal plan updated");
   return c.json({ mealPlan: plan });
 });
@@ -168,7 +167,7 @@ mealPlanRouter.delete("/meal-plans/:id", async (c) => {
 
   if (result.length === 0) throw new HttpError(404, "NOT_FOUND", "Meal plan not found");
 
-  const log = c.var.logger ?? rootLogger;
+  const log = c.var.logger;
   log.info({ planId: id }, "meal plan deleted");
   return new Response(null, { status: 204 });
 });
@@ -197,7 +196,7 @@ mealPlanRouter.post("/meal-plans/:id/activate", async (c) => {
   });
 
   const plan = await fetchPlanDetail(id);
-  const log = c.var.logger ?? rootLogger;
+  const log = c.var.logger;
   log.info({ planId: id }, "meal plan activated");
   return c.json({ mealPlan: plan });
 });
@@ -250,7 +249,7 @@ mealPlanRouter.put(
     await db.update(mealPlans).set({ updatedAt: new Date() }).where(eq(mealPlans.id, planId));
 
     const planDetail = await fetchPlanDetail(planId);
-    const log = c.var.logger ?? rootLogger;
+    const log = c.var.logger;
     log.info({ planId, day }, "meal plan slot upserted");
     return c.json({ mealPlan: planDetail });
   },

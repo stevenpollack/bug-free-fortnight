@@ -5,7 +5,6 @@ import { db } from "../db/client";
 import { tags } from "../db/schema";
 import { newId } from "../db/uuid";
 import { HttpError } from "../errors";
-import { logger as rootLogger } from "../logger";
 import { TagInput } from "../schemas/index";
 import type { HonoEnv } from "../types";
 
@@ -45,7 +44,7 @@ tagRouter.post("/tags", zValidator("json", TagInput), async (c) => {
   if (!tag) throw new HttpError(500, "INTERNAL_ERROR", "Failed to upsert tag");
 
   const created = tag.id === newTagId;
-  const log = c.var.logger ?? rootLogger;
+  const log = c.var.logger;
   log.info({ tagId: tag.id, name: normalizedName, created }, "tag upserted");
 
   return c.json({ tag }, 201);
@@ -59,7 +58,7 @@ tagRouter.delete("/tags/:id", async (c) => {
   const id = c.req.param("id");
   const result = await db.delete(tags).where(eq(tags.id, id)).returning({ id: tags.id });
   if (result.length === 0) throw new HttpError(404, "NOT_FOUND", "Tag not found");
-  const log = c.var.logger ?? rootLogger;
+  const log = c.var.logger;
   log.info({ tagId: id }, "tag deleted");
   return new Response(null, { status: 204 });
 });

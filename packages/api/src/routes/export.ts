@@ -3,7 +3,6 @@ import { Hono } from "hono";
 import { db } from "../db/client";
 import { ingredients, recipeTags, recipes, tags } from "../db/schema";
 import { parseNumeric } from "../lib/utils";
-import { logger as rootLogger } from "../logger";
 import type { HonoEnv } from "../types";
 
 export const exportRouter = new Hono<HonoEnv>();
@@ -47,7 +46,7 @@ exportRouter.get("/export", async (c) => {
     return { ...recipe, ingredients: recipeIngredients, tags: recipeTags2 };
   });
 
-  const log = c.var.logger ?? rootLogger;
+  const log = c.var.logger;
   log.info({ recipeCount: allRecipes.length, tagCount: allTags.length }, "export served");
 
   return c.json({

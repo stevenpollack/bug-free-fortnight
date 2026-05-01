@@ -7,7 +7,6 @@ import { ingredients, recipeTags, recipes, type tags } from "../db/schema";
 import { newId } from "../db/uuid";
 import { HttpError } from "../errors";
 import { buildIngredientRows, parseNumeric } from "../lib/utils";
-import { logger as rootLogger } from "../logger";
 import { RecipeCreate, RecipeUpdate } from "../schemas/index";
 import type { HonoEnv } from "../types";
 
@@ -181,7 +180,7 @@ recipeRouter.post("/recipes", zValidator("json", RecipeCreate), async (c) => {
   });
 
   const recipe = await fetchFullRecipe(recipeId);
-  const log = c.var.logger ?? rootLogger;
+  const log = c.var.logger;
   log.info(
     { recipeId, ingredientCount: body.ingredients.length, tagCount: body.tagIds.length },
     "recipe created",
@@ -231,7 +230,7 @@ recipeRouter.put("/recipes/:id", zValidator("json", RecipeUpdate), async (c) => 
   });
 
   const recipe = await fetchFullRecipe(id);
-  const log = c.var.logger ?? rootLogger;
+  const log = c.var.logger;
   log.info(
     { recipeId: id, ingredientCount: body.ingredients.length, tagCount: body.tagIds.length },
     "recipe updated",
@@ -247,7 +246,7 @@ recipeRouter.delete("/recipes/:id", async (c) => {
   const id = c.req.param("id");
   const result = await db.delete(recipes).where(eq(recipes.id, id)).returning({ id: recipes.id });
   if (result.length === 0) throw new HttpError(404, "NOT_FOUND", "Recipe not found");
-  const log = c.var.logger ?? rootLogger;
+  const log = c.var.logger;
   log.info({ recipeId: id }, "recipe deleted");
   return new Response(null, { status: 204 });
 });
@@ -270,7 +269,7 @@ recipeRouter.post("/recipes/:id/favourite", async (c) => {
     .where(eq(recipes.id, id));
 
   const recipe = await fetchFullRecipe(id);
-  const log = c.var.logger ?? rootLogger;
+  const log = c.var.logger;
   log.info({ recipeId: id, favourite: recipe.favourite }, "favourite toggled");
   return c.json({ recipe });
 });

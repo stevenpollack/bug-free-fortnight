@@ -12,7 +12,6 @@ import {
 import { newId } from "../db/uuid";
 import { HttpError } from "../errors";
 import { parseNumeric } from "../lib/utils";
-import { logger as rootLogger } from "../logger";
 import { ShoppingListItemCreate, ShoppingListItemPatch } from "../schemas/index";
 import type { HonoEnv } from "../types";
 
@@ -91,7 +90,7 @@ async function resolveShoppingList(planId: string) {
 
 shoppingListRouter.post("/meal-plans/:id/shopping-list/generate", async (c) => {
   const planId = c.req.param("id");
-  const log = c.var.logger ?? rootLogger;
+  const log = c.var.logger;
 
   const [plan] = await db.select().from(mealPlans).where(eq(mealPlans.id, planId));
   if (!plan) throw new HttpError(404, "NOT_FOUND", "Meal plan not found");
@@ -229,7 +228,7 @@ shoppingListRouter.patch(
     const planId = c.req.param("id");
     const itemId = c.req.param("itemId");
     const body = c.req.valid("json");
-    const log = c.var.logger ?? rootLogger;
+    const log = c.var.logger;
 
     const { list } = await resolveShoppingList(planId);
 
@@ -265,7 +264,7 @@ shoppingListRouter.patch(
 shoppingListRouter.delete("/meal-plans/:id/shopping-list/items/:itemId", async (c) => {
   const planId = c.req.param("id");
   const itemId = c.req.param("itemId");
-  const log = c.var.logger ?? rootLogger;
+  const log = c.var.logger;
 
   const { list } = await resolveShoppingList(planId);
 
@@ -290,7 +289,7 @@ shoppingListRouter.post(
   async (c) => {
     const planId = c.req.param("id");
     const body = c.req.valid("json");
-    const log = c.var.logger ?? rootLogger;
+    const log = c.var.logger;
 
     const { list } = await resolveShoppingList(planId);
 
