@@ -1,1 +1,8 @@
+STAGED=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(ts|tsx|js|jsx|json)$' || true)
+
+if [ -n "$STAGED" ]; then
+  echo "$STAGED" | xargs bunx biome check --write
+  echo "$STAGED" | xargs git add
+fi
+
 bun run check
