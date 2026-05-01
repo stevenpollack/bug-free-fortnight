@@ -28,8 +28,9 @@ jobs:
           path: |
             ~/.bun/install/cache
             node_modules
-            apps/web/node_modules
-            apps/api/node_modules
+            packages/web/node_modules
+            packages/api/node_modules
+            packages/mcp/node_modules
           key: bun-${{ hashFiles('bun.lock') }}
           restore-keys: |
             bun-
@@ -58,8 +59,9 @@ jobs:
           path: |
             ~/.bun/install/cache
             node_modules
-            apps/web/node_modules
-            apps/api/node_modules
+            packages/web/node_modules
+            packages/api/node_modules
+            packages/mcp/node_modules
           key: bun-${{ hashFiles('bun.lock') }}
           restore-keys: |
             bun-
@@ -81,3 +83,6 @@ jobs:
           name: compose-test-logs
           path: /tmp/compose-test.log
           retention-days: 7
+
+  # Automated deploy is not wired up: GitHub Actions runners cannot reach the
+  # private LAN/Tailscale host. Run `bun run deploy` locally after merging.
