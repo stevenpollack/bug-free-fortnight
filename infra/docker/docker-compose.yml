@@ -31,14 +31,38 @@ services:
     build:
       context: ../..
       dockerfile: infra/docker/Dockerfile
+      target: api
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       PORT: "3001"
       NODE_ENV: production
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
     ports:
       - "${APP_PORT:-3001}:3001"
     depends_on:
       postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+        compress: "true"
+
+  mcp:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile
+      target: mcp
+    environment:
+      API_BASE: http://app:3001
+      MCP_PORT: "3002"
+      MCP_BEARER_TOKEN: ${MCP_BEARER_TOKEN:-}
+    ports:
+      - "${MCP_PORT:-3002}:3002"
+    depends_on:
+      app:
         condition: service_healthy
     restart: unless-stopped
     logging:
