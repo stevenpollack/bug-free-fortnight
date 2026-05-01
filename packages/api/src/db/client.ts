@@ -13,7 +13,7 @@ export const sql = postgres(process.env.DATABASE_URL ?? "", {
   onnotice: (notice) => logger.debug({ notice }, "pg notice"),
   ...(debugSql
     ? {
-        debug: (conn, query, params) => {
+        debug: (_conn, query, params) => {
           logger.debug({ query, params }, "sql");
         },
       }

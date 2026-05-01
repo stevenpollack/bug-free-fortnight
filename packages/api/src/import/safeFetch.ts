@@ -17,12 +17,12 @@ export type SafeFetchErrorCode =
   | "TOO_MANY_REDIRECTS";
 
 export class SafeFetchError extends Error {
-  constructor(
-    public readonly code: SafeFetchErrorCode,
-    message: string,
-  ) {
+  readonly code: SafeFetchErrorCode;
+
+  constructor(code: SafeFetchErrorCode, message: string) {
     super(message);
     this.name = "SafeFetchError";
+    this.code = code;
   }
 }
 

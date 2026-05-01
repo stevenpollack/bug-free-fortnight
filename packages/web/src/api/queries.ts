@@ -2,8 +2,14 @@ import type { RecipeCreate, RecipeUpdate } from "@api/schemas";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSyncExternalStore } from "react";
 import { getAnthropicKey } from "../lib/anthropicKey";
-import type { DayKey, ShoppingList, ShoppingListItem } from "./client";
-import { client } from "./client";
+import { ApiError, client, unwrap } from "./client";
+import type {
+  AppConfig,
+  DayKey,
+  ShoppingList,
+  ShoppingListItem,
+  ShoppingListResponse,
+} from "./types";
 
 // ---------------------------------------------------------------------------
 // Query keys
@@ -28,7 +34,7 @@ export const queryKeys = {
 export function useAppConfig() {
   return useQuery({
     queryKey: ["config"] as const,
-    queryFn: () => client.getConfig(),
+    queryFn: () => client.api.config.$get().then((res) => unwrap<AppConfig>(res)),
     staleTime: Number.POSITIVE_INFINITY,
   });
 }
@@ -51,7 +57,10 @@ export function useCanGenerate(): boolean {
 /** Mutation to test an Anthropic API key against our backend. */
 export function useTestAnthropicKey() {
   return useMutation({
-    mutationFn: (key: string) => client.testAnthropicKey(key),
+    mutationFn: (key: string) =>
+      client.api.anthropic["test-key"]
+        .$post({}, { headers: { "X-Anthropic-Key": key } })
+        .then((res) => unwrap<{ ok: boolean }>(res)),
   });
 }
 
@@ -62,7 +71,14 @@ export function useTestAnthropicKey() {
 export function useRecipesList(params: { q?: string; tag?: string[]; favourite?: boolean } = {}) {
   return useQuery({
     queryKey: queryKeys.recipes(params),
-    queryFn: () => client.getRecipes(params),
+    queryFn: async () => {
+      const query: Record<string, string | string[]> = {};
+      if (params.q) query.q = params.q;
+      if (params.tag?.length) query.tag = params.tag;
+      if (params.favourite !== undefined) query.favourite = String(params.favourite);
+      const res = await client.api.recipes.$get({ query });
+      return unwrap<{ recipes: import("./types").RecipeListItem[] }>(res);
+    },
     select: (data) => data.recipes,
   });
 }
@@ -70,7 +86,10 @@ export function useRecipesList(params: { q?: string; tag?: string[]; favourite?:
 export function useRecipe(id: string) {
   return useQuery({
     queryKey: queryKeys.recipe(id),
-    queryFn: () => client.getRecipe(id),
+    queryFn: async () => {
+      const res = await client.api.recipes[":id"].$get({ param: { id } });
+      return unwrap<{ recipe: import("./types").RecipeDetail }>(res);
+    },
     select: (data) => data.recipe,
   });
 }
@@ -82,7 +101,10 @@ export function useRecipe(id: string) {
 export function useTags() {
   return useQuery({
     queryKey: queryKeys.tags(),
-    queryFn: () => client.getTags(),
+    queryFn: async () => {
+      const res = await client.api.tags.$get();
+      return unwrap<{ tags: import("./types").Tag[] }>(res);
+    },
     select: (data) => data.tags,
   });
 }
@@ -94,7 +116,10 @@ export function useTags() {
 export function useCreateRecipe() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: RecipeCreate) => client.createRecipe(body),
+    mutationFn: async (body: RecipeCreate) => {
+      const res = await client.api.recipes.$post({ json: body });
+      return unwrap<{ recipe: import("./types").RecipeDetail }>(res);
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["recipes"] });
     },
@@ -104,7 +129,10 @@ export function useCreateRecipe() {
 export function useUpdateRecipe(id: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: RecipeUpdate) => client.updateRecipe(id, body),
+    mutationFn: async (body: RecipeUpdate) => {
+      const res = await client.api.recipes[":id"].$put({ param: { id }, json: body });
+      return unwrap<{ recipe: import("./types").RecipeDetail }>(res);
+    },
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["recipes"] });
       qc.setQueryData(queryKeys.recipe(id), data);
@@ -115,7 +143,10 @@ export function useUpdateRecipe(id: string) {
 export function useDeleteRecipe() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => client.deleteRecipe(id),
+    mutationFn: async (id: string) => {
+      const res = await client.api.recipes[":id"].$delete({ param: { id } });
+      return unwrap<void>(res);
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["recipes"] });
     },
@@ -125,7 +156,10 @@ export function useDeleteRecipe() {
 export function useToggleFavourite() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => client.toggleFavourite(id),
+    mutationFn: async (id: string) => {
+      const res = await client.api.recipes[":id"].favourite.$post({ param: { id } });
+      return unwrap<{ recipe: import("./types").RecipeDetail }>(res);
+    },
     onSuccess: (data, id) => {
       qc.invalidateQueries({ queryKey: ["recipes"] });
       qc.setQueryData(queryKeys.recipe(id), data);
@@ -140,7 +174,10 @@ export function useToggleFavourite() {
 export function useUpsertTag() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: { name: string; category?: string | null }) => client.upsertTag(body),
+    mutationFn: async (body: { name: string; category?: string | null }) => {
+      const res = await client.api.tags.$post({ json: body });
+      return unwrap<{ tag: import("./types").Tag }>(res);
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.tags() });
     },
@@ -150,7 +187,10 @@ export function useUpsertTag() {
 export function useDeleteTag() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => client.deleteTag(id),
+    mutationFn: async (id: string) => {
+      const res = await client.api.tags[":id"].$delete({ param: { id } });
+      return unwrap<void>(res);
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.tags() });
     },
@@ -163,7 +203,10 @@ export function useDeleteTag() {
 
 export function useImportPreview() {
   return useMutation({
-    mutationFn: (url: string) => client.importPreview(url),
+    mutationFn: async (url: string) => {
+      const res = await client.api.import.preview.$post({ json: { url } });
+      return unwrap<import("./types").ImportResult>(res);
+    },
   });
 }
 
@@ -173,8 +216,10 @@ export function useImportPreview() {
 
 export function useGenerateRecipe() {
   return useMutation({
-    mutationFn: (body: { prompt: string; servings?: number; dietary?: string }) =>
-      client.generateRecipe(body),
+    mutationFn: async (body: { prompt: string; servings?: number; dietary?: string }) => {
+      const res = await client.api.recipes.generate.$post({ json: body });
+      return unwrap<{ recipe: RecipeCreate }>(res);
+    },
   });
 }
 
@@ -185,7 +230,10 @@ export function useGenerateRecipe() {
 export function useMealPlansList() {
   return useQuery({
     queryKey: queryKeys.mealPlans(),
-    queryFn: () => client.listMealPlans(),
+    queryFn: async () => {
+      const res = await client.api["meal-plans"].$get();
+      return unwrap<{ mealPlans: import("./types").MealPlanListItem[] }>(res);
+    },
     select: (data) => data.mealPlans,
   });
 }
@@ -193,7 +241,10 @@ export function useMealPlansList() {
 export function useMealPlan(id: string) {
   return useQuery({
     queryKey: queryKeys.mealPlan(id),
-    queryFn: () => client.getMealPlan(id),
+    queryFn: async () => {
+      const res = await client.api["meal-plans"][":id"].$get({ param: { id } });
+      return unwrap<{ mealPlan: import("./types").MealPlanDetail }>(res);
+    },
     select: (data) => data.mealPlan,
   });
 }
@@ -205,7 +256,10 @@ export function useMealPlan(id: string) {
 export function useCreateMealPlan() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (name?: string | null) => client.createMealPlan(name),
+    mutationFn: async (name?: string | null) => {
+      const res = await client.api["meal-plans"].$post({ json: { name: name ?? null } });
+      return unwrap<{ mealPlan: import("./types").MealPlanDetail }>(res);
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.mealPlans() });
     },
@@ -215,7 +269,10 @@ export function useCreateMealPlan() {
 export function useUpdateMealPlan(id: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: { name?: string | null }) => client.updateMealPlan(id, body),
+    mutationFn: async (body: { name?: string | null }) => {
+      const res = await client.api["meal-plans"][":id"].$patch({ param: { id }, json: body });
+      return unwrap<{ mealPlan: import("./types").MealPlanDetail }>(res);
+    },
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: queryKeys.mealPlans() });
       qc.setQueryData(queryKeys.mealPlan(id), data);
@@ -226,7 +283,10 @@ export function useUpdateMealPlan(id: string) {
 export function useDeleteMealPlan() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => client.deleteMealPlan(id),
+    mutationFn: async (id: string) => {
+      const res = await client.api["meal-plans"][":id"].$delete({ param: { id } });
+      return unwrap<void>(res);
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.mealPlans() });
     },
@@ -236,7 +296,10 @@ export function useDeleteMealPlan() {
 export function useActivateMealPlan() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => client.activateMealPlan(id),
+    mutationFn: async (id: string) => {
+      const res = await client.api["meal-plans"][":id"].activate.$post({ param: { id } });
+      return unwrap<{ mealPlan: import("./types").MealPlanDetail }>(res);
+    },
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: queryKeys.mealPlans() });
       qc.setQueryData(queryKeys.mealPlan(data.mealPlan.id), data);
@@ -247,13 +310,19 @@ export function useActivateMealPlan() {
 export function useUpsertSlot(planId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       day,
       body,
     }: {
       day: DayKey;
       body: { recipe_id?: string | null; note?: string | null };
-    }) => client.upsertSlot(planId, day, body),
+    }) => {
+      const res = await client.api["meal-plans"][":id"].slots[":day"].$put({
+        param: { id: planId, day },
+        json: body,
+      });
+      return unwrap<{ mealPlan: import("./types").MealPlanDetail }>(res);
+    },
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: queryKeys.mealPlans() });
       qc.setQueryData(queryKeys.mealPlan(planId), data);
@@ -270,7 +339,12 @@ export function useUpsertSlot(planId: string) {
 export function useShoppingList(planId: string) {
   return useQuery({
     queryKey: queryKeys.shoppingList(planId),
-    queryFn: () => client.getShoppingList(planId),
+    queryFn: async () => {
+      const res = await client.api["meal-plans"][":id"]["shopping-list"].$get({
+        param: { id: planId },
+      });
+      return unwrap<ShoppingListResponse>(res);
+    },
   });
 }
 
@@ -281,7 +355,12 @@ export function useShoppingList(planId: string) {
 export function useGenerateShoppingList(planId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: () => client.generateShoppingList(planId),
+    mutationFn: async () => {
+      const res = await client.api["meal-plans"][":id"]["shopping-list"].generate.$post({
+        param: { id: planId },
+      });
+      return unwrap<{ shoppingList: ShoppingList }>(res);
+    },
     onSuccess: (data) => {
       qc.setQueryData(queryKeys.shoppingList(planId), {
         shoppingList: data.shoppingList,
@@ -295,27 +374,29 @@ export function useGenerateShoppingList(planId: string) {
 export function useToggleShoppingListItem(planId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ itemId, checked }: { itemId: string; checked: boolean }) =>
-      client.patchShoppingListItem(planId, itemId, { checked }),
+    mutationFn: async ({ itemId, checked }: { itemId: string; checked: boolean }) => {
+      const res = await client.api["meal-plans"][":id"]["shopping-list"].items[":itemId"].$patch({
+        param: { id: planId, itemId },
+        json: { checked },
+      });
+      return unwrap<{ item: ShoppingListItem }>(res);
+    },
     // Optimistic update
     onMutate: async ({ itemId, checked }) => {
       await qc.cancelQueries({ queryKey: queryKeys.shoppingList(planId) });
       const previous = qc.getQueryData(queryKeys.shoppingList(planId));
-      qc.setQueryData(
-        queryKeys.shoppingList(planId),
-        (old: { shoppingList: ShoppingList | null; plan_updated_at: string } | undefined) => {
-          if (!old?.shoppingList) return old;
-          return {
-            ...old,
-            shoppingList: {
-              ...old.shoppingList,
-              items: old.shoppingList.items.map((item) =>
-                item.id === itemId ? { ...item, checked } : item,
-              ),
-            },
-          };
-        },
-      );
+      qc.setQueryData(queryKeys.shoppingList(planId), (old: ShoppingListResponse | undefined) => {
+        if (!old?.shoppingList) return old;
+        return {
+          ...old,
+          shoppingList: {
+            ...old.shoppingList,
+            items: old.shoppingList.items.map((item) =>
+              item.id === itemId ? { ...item, checked } : item,
+            ),
+          },
+        };
+      });
       return { previous };
     },
     onError: (_err, _vars, context) => {
@@ -332,7 +413,7 @@ export function useToggleShoppingListItem(planId: string) {
 export function usePatchShoppingListItem(planId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       itemId,
       body,
     }: {
@@ -343,23 +424,26 @@ export function usePatchShoppingListItem(planId: string) {
         unit?: string | null;
         notes?: string | null;
       };
-    }) => client.patchShoppingListItem(planId, itemId, body),
+    }) => {
+      const res = await client.api["meal-plans"][":id"]["shopping-list"].items[":itemId"].$patch({
+        param: { id: planId, itemId },
+        json: body,
+      });
+      return unwrap<{ item: ShoppingListItem }>(res);
+    },
     onSuccess: (data) => {
-      qc.setQueryData(
-        queryKeys.shoppingList(planId),
-        (old: { shoppingList: ShoppingList | null; plan_updated_at: string } | undefined) => {
-          if (!old?.shoppingList) return old;
-          return {
-            ...old,
-            shoppingList: {
-              ...old.shoppingList,
-              items: old.shoppingList.items.map((item: ShoppingListItem) =>
-                item.id === data.item.id ? data.item : item,
-              ),
-            },
-          };
-        },
-      );
+      qc.setQueryData(queryKeys.shoppingList(planId), (old: ShoppingListResponse | undefined) => {
+        if (!old?.shoppingList) return old;
+        return {
+          ...old,
+          shoppingList: {
+            ...old.shoppingList,
+            items: old.shoppingList.items.map((item: ShoppingListItem) =>
+              item.id === data.item.id ? data.item : item,
+            ),
+          },
+        };
+      });
     },
   });
 }
@@ -367,21 +451,23 @@ export function usePatchShoppingListItem(planId: string) {
 export function useDeleteShoppingListItem(planId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (itemId: string) => client.deleteShoppingListItem(planId, itemId),
+    mutationFn: async (itemId: string) => {
+      const res = await client.api["meal-plans"][":id"]["shopping-list"].items[":itemId"].$delete({
+        param: { id: planId, itemId },
+      });
+      return unwrap<void>(res);
+    },
     onSuccess: (_data, itemId) => {
-      qc.setQueryData(
-        queryKeys.shoppingList(planId),
-        (old: { shoppingList: ShoppingList | null; plan_updated_at: string } | undefined) => {
-          if (!old?.shoppingList) return old;
-          return {
-            ...old,
-            shoppingList: {
-              ...old.shoppingList,
-              items: old.shoppingList.items.filter((item: ShoppingListItem) => item.id !== itemId),
-            },
-          };
-        },
-      );
+      qc.setQueryData(queryKeys.shoppingList(planId), (old: ShoppingListResponse | undefined) => {
+        if (!old?.shoppingList) return old;
+        return {
+          ...old,
+          shoppingList: {
+            ...old.shoppingList,
+            items: old.shoppingList.items.filter((item: ShoppingListItem) => item.id !== itemId),
+          },
+        };
+      });
     },
   });
 }
@@ -389,26 +475,29 @@ export function useDeleteShoppingListItem(planId: string) {
 export function useAddShoppingListItem(planId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: {
+    mutationFn: async (body: {
       item: string;
       quantity?: number | null;
       unit?: string | null;
       notes?: string | null;
-    }) => client.addShoppingListItem(planId, body),
+    }) => {
+      const res = await client.api["meal-plans"][":id"]["shopping-list"].items.$post({
+        param: { id: planId },
+        json: body,
+      });
+      return unwrap<{ item: ShoppingListItem }>(res);
+    },
     onSuccess: (data) => {
-      qc.setQueryData(
-        queryKeys.shoppingList(planId),
-        (old: { shoppingList: ShoppingList | null; plan_updated_at: string } | undefined) => {
-          if (!old?.shoppingList) return old;
-          return {
-            ...old,
-            shoppingList: {
-              ...old.shoppingList,
-              items: [...old.shoppingList.items, data.item],
-            },
-          };
-        },
-      );
+      qc.setQueryData(queryKeys.shoppingList(planId), (old: ShoppingListResponse | undefined) => {
+        if (!old?.shoppingList) return old;
+        return {
+          ...old,
+          shoppingList: {
+            ...old.shoppingList,
+            items: [...old.shoppingList.items, data.item],
+          },
+        };
+      });
     },
   });
 }
@@ -420,7 +509,10 @@ export function useAddShoppingListItem(planId: string) {
 export function useRecipeSchema() {
   return useQuery({
     queryKey: queryKeys.recipeSchema(),
-    queryFn: () => client.getRecipeSchema(),
+    queryFn: async () => {
+      const res = await client.api.schemas.recipe.$get();
+      return unwrap<Record<string, unknown>>(res);
+    },
     staleTime: Number.POSITIVE_INFINITY,
   });
 }
@@ -428,7 +520,10 @@ export function useRecipeSchema() {
 export function useMealPlanSchema() {
   return useQuery({
     queryKey: queryKeys.mealPlanSchema(),
-    queryFn: () => client.getMealPlanSchema(),
+    queryFn: async () => {
+      const res = await client.api.schemas["meal-plan"].$get();
+      return unwrap<Record<string, unknown>>(res);
+    },
     staleTime: Number.POSITIVE_INFINITY,
   });
 }
@@ -440,8 +535,12 @@ export function useMealPlanSchema() {
 export function useGenerateMealPlan(planId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: { prompt: string } | { rawJson: string }) =>
-      client.generateMealPlan(planId, body),
+    mutationFn: async (body: { prompt: string } | { rawJson: string }) => {
+      const res = await client.api["meal-plans"].generate.$post({
+        json: { planId, ...body },
+      });
+      return unwrap<{ ok: boolean; slotCount: number }>(res);
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.mealPlan(planId) });
       qc.invalidateQueries({ queryKey: queryKeys.mealPlans() });
@@ -449,3 +548,6 @@ export function useGenerateMealPlan(planId: string) {
     },
   });
 }
+
+// Re-export ApiError so call sites don't need to import from two places
+export { ApiError };

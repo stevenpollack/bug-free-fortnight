@@ -10,12 +10,13 @@ export type ErrorCode =
   | "RATE_LIMITED";
 
 export class HttpError extends Error {
-  constructor(
-    public readonly statusCode: number,
-    public readonly code: ErrorCode,
-    message: string,
-  ) {
+  readonly statusCode: number;
+  readonly code: ErrorCode;
+
+  constructor(statusCode: number, code: ErrorCode, message: string) {
     super(message);
     this.name = "HttpError";
+    this.statusCode = statusCode;
+    this.code = code;
   }
 }
