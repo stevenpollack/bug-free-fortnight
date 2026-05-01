@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import type { MealPlanSlot } from "../api/client";
 import { useRecipesList } from "../api/queries";
+import type { MealPlanSlot } from "../api/types";
 import { SearchIcon, XIcon } from "./icons";
 
 interface RecipePickerSheetProps {

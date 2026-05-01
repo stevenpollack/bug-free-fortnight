@@ -2,8 +2,8 @@ import { getRouteApi, useNavigate } from "@tanstack/react-router";
 
 const Route = getRouteApi("/recipes/$id");
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Ingredient } from "../api/client";
 import { useDeleteRecipe, useRecipe, useTags, useToggleFavourite } from "../api/queries";
+import type { Ingredient } from "../api/types";
 import { Page } from "../components/Page";
 import { RecipeDetailSkeleton } from "../components/Skeleton";
 import { TagPill } from "../components/TagPill";

@@ -1,4 +1,4 @@
-import type { Tag } from "../api/client";
+import type { Tag } from "../api/types";
 
 // A simple deterministic colour per category using a hash
 function categoryColor(category: string | null): string {

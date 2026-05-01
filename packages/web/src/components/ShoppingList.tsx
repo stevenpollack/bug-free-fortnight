@@ -1,5 +1,4 @@
 import { useState } from "react";
-import type { ShoppingListItem } from "../api/client";
 import {
   useAddShoppingListItem,
   useDeleteShoppingListItem,
@@ -7,6 +6,7 @@ import {
   useShoppingList,
   useToggleShoppingListItem,
 } from "../api/queries";
+import type { ShoppingListItem } from "../api/types";
 import { formatQuantity } from "../lib/quantity";
 import { AlertIcon, PlusIcon, TrashIcon } from "./icons";
 

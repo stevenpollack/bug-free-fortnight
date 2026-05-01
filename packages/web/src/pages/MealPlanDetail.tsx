@@ -1,6 +1,5 @@
 import { Link, getRouteApi, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import type { DayKey, MealPlanSlot } from "../api/client";
 import {
   useActivateMealPlan,
   useAppConfig,
@@ -8,6 +7,7 @@ import {
   useUpdateMealPlan,
   useUpsertSlot,
 } from "../api/queries";
+import type { DayKey, MealPlanSlot } from "../api/types";
 import { GenerateMealPlanSheet } from "../components/GenerateMealPlanSheet";
 import { Page } from "../components/Page";
 import { RecipePickerSheet } from "../components/RecipePickerSheet";

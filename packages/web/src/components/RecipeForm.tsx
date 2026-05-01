@@ -2,8 +2,8 @@ import type { RecipeCreate } from "@api/schemas";
 import { useForm } from "@tanstack/react-form";
 import { useState } from "react";
 import { z } from "zod";
-import type { RecipeDetail, Tag } from "../api/client";
 import { useTags, useUpsertTag } from "../api/queries";
+import type { RecipeDetail, Tag } from "../api/types";
 import { TagPill } from "./TagPill";
 import { ChevronDownIcon, ChevronUpIcon, PlusIcon, TrashIcon, XIcon } from "./icons";
 
