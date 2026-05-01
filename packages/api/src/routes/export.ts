@@ -2,16 +2,11 @@ import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { db } from "../db/client";
 import { ingredients, recipeTags, recipes, tags } from "../db/schema";
+import { parseNumeric } from "../lib/utils";
 import { logger as rootLogger } from "../logger";
 import type { HonoEnv } from "../types";
 
 export const exportRouter = new Hono<HonoEnv>();
-
-function parseNumeric(v: string | null | undefined): number | null {
-  if (v == null) return null;
-  const n = Number(v);
-  return Number.isNaN(n) ? null : n;
-}
 
 // ---------------------------------------------------------------------------
 // GET /export

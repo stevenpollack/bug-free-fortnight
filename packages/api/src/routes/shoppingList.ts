@@ -1,5 +1,5 @@
 import { zValidator } from "@hono/zod-validator";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { Hono } from "hono";
 import { db } from "../db/client";
 import {
@@ -11,21 +11,12 @@ import {
 } from "../db/schema";
 import { newId } from "../db/uuid";
 import { HttpError } from "../errors";
+import { parseNumeric } from "../lib/utils";
 import { logger as rootLogger } from "../logger";
 import { ShoppingListItemCreate, ShoppingListItemPatch } from "../schemas/index";
 import type { HonoEnv } from "../types";
 
 export const shoppingListRouter = new Hono<HonoEnv>();
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function parseNumeric(v: string | null | undefined): number | null {
-  if (v == null) return null;
-  const n = Number(v);
-  return Number.isNaN(n) ? null : n;
-}
 
 interface ConsolidatedItem {
   item: string;
@@ -84,6 +75,16 @@ async function fetchShoppingList(listId: string): Promise<ShoppingListRead> {
   };
 }
 
+async function resolveShoppingList(planId: string) {
+  const plan = await db.query.mealPlans.findFirst({ where: eq(mealPlans.id, planId) });
+  if (!plan) throw new HttpError(404, "NOT_FOUND", "Meal plan not found");
+  const list = await db.query.shoppingLists.findFirst({
+    where: eq(shoppingLists.planId, planId),
+  });
+  if (!list) throw new HttpError(404, "NOT_FOUND", "Shopping list not found");
+  return { plan, list };
+}
+
 // ---------------------------------------------------------------------------
 // POST /meal-plans/:id/shopping-list/generate
 // ---------------------------------------------------------------------------
@@ -114,7 +115,6 @@ shoppingListRouter.post("/meal-plans/:id/shopping-list/generate", async (c) => {
 
   let ingredientRows: (typeof ingredients.$inferSelect)[] = [];
   if (uniqueRecipeIds.length > 0) {
-    const { inArray } = await import("drizzle-orm");
     ingredientRows = await db
       .select()
       .from(ingredients)
@@ -231,19 +231,7 @@ shoppingListRouter.patch(
     const body = c.req.valid("json");
     const log = c.var.logger ?? rootLogger;
 
-    // Verify plan exists
-    const [plan] = await db
-      .select({ id: mealPlans.id })
-      .from(mealPlans)
-      .where(eq(mealPlans.id, planId));
-    if (!plan) throw new HttpError(404, "NOT_FOUND", "Meal plan not found");
-
-    // Verify item belongs to this plan's list
-    const [list] = await db
-      .select({ id: shoppingLists.id })
-      .from(shoppingLists)
-      .where(eq(shoppingLists.planId, planId));
-    if (!list) throw new HttpError(404, "NOT_FOUND", "Shopping list not found");
+    const { list } = await resolveShoppingList(planId);
 
     const [item] = await db
       .select()
@@ -279,17 +267,7 @@ shoppingListRouter.delete("/meal-plans/:id/shopping-list/items/:itemId", async (
   const itemId = c.req.param("itemId");
   const log = c.var.logger ?? rootLogger;
 
-  const [plan] = await db
-    .select({ id: mealPlans.id })
-    .from(mealPlans)
-    .where(eq(mealPlans.id, planId));
-  if (!plan) throw new HttpError(404, "NOT_FOUND", "Meal plan not found");
-
-  const [list] = await db
-    .select({ id: shoppingLists.id })
-    .from(shoppingLists)
-    .where(eq(shoppingLists.planId, planId));
-  if (!list) throw new HttpError(404, "NOT_FOUND", "Shopping list not found");
+  const { list } = await resolveShoppingList(planId);
 
   const result = await db
     .delete(shoppingListItems)
@@ -314,14 +292,7 @@ shoppingListRouter.post(
     const body = c.req.valid("json");
     const log = c.var.logger ?? rootLogger;
 
-    const [plan] = await db
-      .select({ id: mealPlans.id })
-      .from(mealPlans)
-      .where(eq(mealPlans.id, planId));
-    if (!plan) throw new HttpError(404, "NOT_FOUND", "Meal plan not found");
-
-    const [list] = await db.select().from(shoppingLists).where(eq(shoppingLists.planId, planId));
-    if (!list) throw new HttpError(404, "NOT_FOUND", "Shopping list not found — generate it first");
+    const { list } = await resolveShoppingList(planId);
 
     // Find max display_order
     const existingItems = await db

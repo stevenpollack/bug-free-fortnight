@@ -6,6 +6,7 @@ import { db } from "../db/client";
 import { ingredients, recipeTags, recipes, type tags } from "../db/schema";
 import { newId } from "../db/uuid";
 import { HttpError } from "../errors";
+import { buildIngredientRows, parseNumeric } from "../lib/utils";
 import { logger as rootLogger } from "../logger";
 import { RecipeCreate, RecipeUpdate } from "../schemas/index";
 import type { HonoEnv } from "../types";
@@ -15,12 +16,6 @@ export const recipeRouter = new Hono<HonoEnv>();
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function parseNumeric(v: string | null | undefined): number | null {
-  if (v == null) return null;
-  const n = Number(v);
-  return Number.isNaN(n) ? null : n;
-}
 
 type RecipeRow = typeof recipes.$inferSelect;
 type IngredientRow = typeof ingredients.$inferSelect;
@@ -177,19 +172,7 @@ recipeRouter.post("/recipes", zValidator("json", RecipeCreate), async (c) => {
     });
 
     if (body.ingredients.length > 0) {
-      await tx.insert(ingredients).values(
-        body.ingredients.map((ing, idx) => ({
-          id: newId(),
-          recipeId,
-          displayOrder: ing.displayOrder ?? idx,
-          groupHeading: ing.groupHeading ?? null,
-          quantity: ing.quantity != null ? String(ing.quantity) : null,
-          unit: ing.unit ?? null,
-          item: ing.item,
-          notes: ing.notes ?? null,
-          originalLine: ing.originalLine ?? ing.item,
-        })),
-      );
+      await tx.insert(ingredients).values(buildIngredientRows(recipeId, body.ingredients));
     }
 
     if (body.tagIds.length > 0) {
@@ -238,19 +221,7 @@ recipeRouter.put("/recipes/:id", zValidator("json", RecipeUpdate), async (c) => 
 
     await tx.delete(ingredients).where(eq(ingredients.recipeId, id));
     if (body.ingredients.length > 0) {
-      await tx.insert(ingredients).values(
-        body.ingredients.map((ing, idx) => ({
-          id: newId(),
-          recipeId: id,
-          displayOrder: ing.displayOrder ?? idx,
-          groupHeading: ing.groupHeading ?? null,
-          quantity: ing.quantity != null ? String(ing.quantity) : null,
-          unit: ing.unit ?? null,
-          item: ing.item,
-          notes: ing.notes ?? null,
-          originalLine: ing.originalLine ?? ing.item,
-        })),
-      );
+      await tx.insert(ingredients).values(buildIngredientRows(id, body.ingredients));
     }
 
     await tx.delete(recipeTags).where(eq(recipeTags.recipeId, id));
