@@ -24,7 +24,8 @@
 
     /* Path aliases */
     "paths": {
-      "@api/schemas": ["../api/src/schemas/index.ts"]
+      "@api/schemas": ["../api/src/schemas/index.ts"],
+      "@api/app": ["../api/src/app.ts"]
     }
   },
   "include": ["src"]

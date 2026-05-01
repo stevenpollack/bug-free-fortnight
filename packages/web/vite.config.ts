@@ -64,6 +64,7 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         "@api/schemas": resolve(__dirname, "../api/src/schemas/index.ts"),
+        "@api/app": resolve(__dirname, "../api/src/app.ts"),
       },
     },
   };
