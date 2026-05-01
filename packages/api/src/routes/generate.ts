@@ -1,6 +1,6 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
+import { callAnthropic, parseAndValidate } from "../lib/anthropic";
 import { RecipeCreate, RecipeGenerateBody } from "../schemas/index";
 import type { HonoEnv } from "../types";
 
@@ -58,75 +58,13 @@ generateRouter.post("/recipes/generate", zValidator("json", RecipeGenerateBody),
   if (body.dietary) parts.push(`Dietary requirements: ${body.dietary}`);
   const userMessage = parts.join("\n");
 
-  const anthropic = new Anthropic({ apiKey });
+  const rawText = await callAnthropic(apiKey, {
+    model: "claude-sonnet-4-6",
+    max_tokens: 4096,
+    system: SYSTEM_PROMPT,
+    messages: [{ role: "user", content: userMessage }],
+  });
 
-  let rawText: string;
-  try {
-    const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 4096,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: userMessage }],
-    });
-
-    const block = response.content[0];
-    if (block?.type !== "text") {
-      return c.json(
-        {
-          error: {
-            code: "GENERATION_FAILED",
-            message: "Claude returned an unexpected response type",
-          },
-        },
-        422,
-      );
-    }
-    rawText = block.text;
-  } catch (err) {
-    // Check for rate limit error from Anthropic SDK
-    if (err instanceof Anthropic.RateLimitError) {
-      return c.json(
-        {
-          error: {
-            code: "RATE_LIMITED",
-            message: "Too many requests — please try again shortly",
-          },
-        },
-        429,
-      );
-    }
-    throw err;
-  }
-
-  // Parse JSON from Claude's response
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(rawText);
-  } catch {
-    return c.json(
-      {
-        error: {
-          code: "GENERATION_FAILED",
-          message: "Claude returned non-JSON output",
-        },
-      },
-      422,
-    );
-  }
-
-  // Validate against RecipeCreate schema
-  const result = RecipeCreate.safeParse(parsed);
-  if (!result.success) {
-    return c.json(
-      {
-        error: {
-          code: "GENERATION_FAILED",
-          message: `Generated recipe did not match expected schema: ${result.error.issues[0]?.message ?? "unknown error"}`,
-        },
-      },
-      422,
-    );
-  }
-
-  return c.json({ recipe: result.data });
+  const recipe = parseAndValidate(rawText, RecipeCreate);
+  return c.json({ recipe });
 });

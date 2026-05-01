@@ -6,7 +6,7 @@ import { db } from "../db/client";
 import { ingredients, recipeTags, recipes, type tags } from "../db/schema";
 import { newId } from "../db/uuid";
 import { HttpError } from "../errors";
-import { logger as rootLogger } from "../logger";
+import { buildIngredientRows, parseNumeric } from "../lib/utils";
 import { RecipeCreate, RecipeUpdate } from "../schemas/index";
 import type { HonoEnv } from "../types";
 
@@ -15,12 +15,6 @@ export const recipeRouter = new Hono<HonoEnv>();
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function parseNumeric(v: string | null | undefined): number | null {
-  if (v == null) return null;
-  const n = Number(v);
-  return Number.isNaN(n) ? null : n;
-}
 
 type RecipeRow = typeof recipes.$inferSelect;
 type IngredientRow = typeof ingredients.$inferSelect;
@@ -177,19 +171,7 @@ recipeRouter.post("/recipes", zValidator("json", RecipeCreate), async (c) => {
     });
 
     if (body.ingredients.length > 0) {
-      await tx.insert(ingredients).values(
-        body.ingredients.map((ing, idx) => ({
-          id: newId(),
-          recipeId,
-          displayOrder: ing.displayOrder ?? idx,
-          groupHeading: ing.groupHeading ?? null,
-          quantity: ing.quantity != null ? String(ing.quantity) : null,
-          unit: ing.unit ?? null,
-          item: ing.item,
-          notes: ing.notes ?? null,
-          originalLine: ing.originalLine ?? ing.item,
-        })),
-      );
+      await tx.insert(ingredients).values(buildIngredientRows(recipeId, body.ingredients));
     }
 
     if (body.tagIds.length > 0) {
@@ -198,7 +180,7 @@ recipeRouter.post("/recipes", zValidator("json", RecipeCreate), async (c) => {
   });
 
   const recipe = await fetchFullRecipe(recipeId);
-  const log = c.var.logger ?? rootLogger;
+  const log = c.var.logger;
   log.info(
     { recipeId, ingredientCount: body.ingredients.length, tagCount: body.tagIds.length },
     "recipe created",
@@ -238,19 +220,7 @@ recipeRouter.put("/recipes/:id", zValidator("json", RecipeUpdate), async (c) => 
 
     await tx.delete(ingredients).where(eq(ingredients.recipeId, id));
     if (body.ingredients.length > 0) {
-      await tx.insert(ingredients).values(
-        body.ingredients.map((ing, idx) => ({
-          id: newId(),
-          recipeId: id,
-          displayOrder: ing.displayOrder ?? idx,
-          groupHeading: ing.groupHeading ?? null,
-          quantity: ing.quantity != null ? String(ing.quantity) : null,
-          unit: ing.unit ?? null,
-          item: ing.item,
-          notes: ing.notes ?? null,
-          originalLine: ing.originalLine ?? ing.item,
-        })),
-      );
+      await tx.insert(ingredients).values(buildIngredientRows(id, body.ingredients));
     }
 
     await tx.delete(recipeTags).where(eq(recipeTags.recipeId, id));
@@ -260,7 +230,7 @@ recipeRouter.put("/recipes/:id", zValidator("json", RecipeUpdate), async (c) => 
   });
 
   const recipe = await fetchFullRecipe(id);
-  const log = c.var.logger ?? rootLogger;
+  const log = c.var.logger;
   log.info(
     { recipeId: id, ingredientCount: body.ingredients.length, tagCount: body.tagIds.length },
     "recipe updated",
@@ -276,7 +246,7 @@ recipeRouter.delete("/recipes/:id", async (c) => {
   const id = c.req.param("id");
   const result = await db.delete(recipes).where(eq(recipes.id, id)).returning({ id: recipes.id });
   if (result.length === 0) throw new HttpError(404, "NOT_FOUND", "Recipe not found");
-  const log = c.var.logger ?? rootLogger;
+  const log = c.var.logger;
   log.info({ recipeId: id }, "recipe deleted");
   return new Response(null, { status: 204 });
 });
@@ -299,7 +269,7 @@ recipeRouter.post("/recipes/:id/favourite", async (c) => {
     .where(eq(recipes.id, id));
 
   const recipe = await fetchFullRecipe(id);
-  const log = c.var.logger ?? rootLogger;
+  const log = c.var.logger;
   log.info({ recipeId: id, favourite: recipe.favourite }, "favourite toggled");
   return c.json({ recipe });
 });
