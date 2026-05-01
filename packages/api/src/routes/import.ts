@@ -5,30 +5,28 @@ import { importRecipeTinEats } from "../import/recipetineats";
 import { ImportPreviewBody } from "../schemas/index";
 import type { HonoEnv } from "../types";
 
-export const importRouter = new Hono<HonoEnv>();
+export const importRouter = new Hono<HonoEnv>().post(
+  "/import/preview",
+  zValidator("json", ImportPreviewBody),
+  async (c) => {
+    const { url } = c.req.valid("json");
+    const log = c.var.logger;
 
-// ---------------------------------------------------------------------------
-// POST /import/preview
-// ---------------------------------------------------------------------------
+    const result = await importRecipeTinEats(url, fetch, log).catch((err: unknown) => {
+      const message = err instanceof Error ? err.message : String(err);
+      throw new HttpError(422, "IMPORT_ERROR", message);
+    });
 
-importRouter.post("/import/preview", zValidator("json", ImportPreviewBody), async (c) => {
-  const { url } = c.req.valid("json");
-  const log = c.var.logger;
+    log.info(
+      {
+        url,
+        warningsCount: result.warnings.length,
+        ingredientCount: result.recipe.ingredients.length,
+        instructionCount: result.recipe.instructions.length,
+      },
+      "import preview success",
+    );
 
-  const result = await importRecipeTinEats(url, fetch, log).catch((err: unknown) => {
-    const message = err instanceof Error ? err.message : String(err);
-    throw new HttpError(422, "IMPORT_ERROR", message);
-  });
-
-  log.info(
-    {
-      url,
-      warningsCount: result.warnings.length,
-      ingredientCount: result.recipe.ingredients.length,
-      instructionCount: result.recipe.instructions.length,
-    },
-    "import preview success",
-  );
-
-  return c.json(result);
-});
+    return c.json(result);
+  },
+);

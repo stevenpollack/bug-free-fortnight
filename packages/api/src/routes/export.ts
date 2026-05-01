@@ -5,13 +5,7 @@ import { ingredients, recipeTags, recipes, tags } from "../db/schema";
 import { parseNumeric } from "../lib/utils";
 import type { HonoEnv } from "../types";
 
-export const exportRouter = new Hono<HonoEnv>();
-
-// ---------------------------------------------------------------------------
-// GET /export
-// ---------------------------------------------------------------------------
-
-exportRouter.get("/export", async (c) => {
+export const exportRouter = new Hono<HonoEnv>().get("/export", async (c) => {
   const [allRecipes, allIngredients, allRecipeTags, allTags] = await Promise.all([
     db.select().from(recipes),
     db.select().from(ingredients),

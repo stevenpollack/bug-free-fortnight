@@ -22,6 +22,31 @@ export interface AppOptions {
   webDistDir?: string;
 }
 
+// ---------------------------------------------------------------------------
+// Typed app — chains all route files so Hono RPC can infer the full AppType.
+// This instance is only used for type inference; it is not served directly.
+// ---------------------------------------------------------------------------
+
+const typedApp = new Hono<HonoEnv>()
+  .route("/api", anthropicKeyRouter)
+  .route("/api", configRouter)
+  .route("/api", exportRouter)
+  .route("/api", generateRouter)
+  .route("/api", generateMealPlanRouter)
+  .route("/api", importRouter)
+  .route("/api", logRouter)
+  .route("/api", mealPlanRouter)
+  .route("/api", recipeRouter)
+  .route("/api", schemaRouter)
+  .route("/api", shoppingListRouter)
+  .route("/api", tagRouter);
+
+export type AppType = typeof typedApp;
+
+// ---------------------------------------------------------------------------
+// Runtime app factory
+// ---------------------------------------------------------------------------
+
 export function createApp({ webDistDir }: AppOptions = {}) {
   const app = new Hono<HonoEnv>();
 

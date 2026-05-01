@@ -2,8 +2,6 @@ import Anthropic from "@anthropic-ai/sdk";
 import { Hono } from "hono";
 import type { HonoEnv } from "../types";
 
-export const anthropicKeyRouter = new Hono<HonoEnv>();
-
 // ---------------------------------------------------------------------------
 // POST /anthropic/test-key
 // ---------------------------------------------------------------------------
@@ -11,7 +9,7 @@ export const anthropicKeyRouter = new Hono<HonoEnv>();
 // (max_tokens: 1) to the Anthropic Messages API.  Returns { ok: true } or
 // a structured error with the upstream message.
 
-anthropicKeyRouter.post("/anthropic/test-key", async (c) => {
+export const anthropicKeyRouter = new Hono<HonoEnv>().post("/anthropic/test-key", async (c) => {
   const apiKey = c.req.header("x-anthropic-key");
 
   if (!apiKey) {

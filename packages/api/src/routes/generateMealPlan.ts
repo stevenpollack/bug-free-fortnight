@@ -11,8 +11,6 @@ import { logger as rootLogger } from "../logger";
 import { type GeneratedSlot, LlmMealPlanOutput, MealPlanGenerateBody } from "../schemas/index";
 import type { HonoEnv } from "../types";
 
-export const generateMealPlanRouter = new Hono<HonoEnv>();
-
 // ---------------------------------------------------------------------------
 // System prompt for LLM
 // ---------------------------------------------------------------------------
@@ -148,10 +146,10 @@ async function applyMealPlan(planId: string, slots: GeneratedSlot[]): Promise<vo
 }
 
 // ---------------------------------------------------------------------------
-// POST /meal-plans/generate
+// Router
 // ---------------------------------------------------------------------------
 
-generateMealPlanRouter.post(
+export const generateMealPlanRouter = new Hono<HonoEnv>().post(
   "/meal-plans/generate",
   zValidator("json", MealPlanGenerateBody),
   async (c) => {

@@ -10,8 +10,6 @@ import { buildIngredientRows, parseNumeric } from "../lib/utils";
 import { RecipeCreate, RecipeUpdate } from "../schemas/index";
 import type { HonoEnv } from "../types";
 
-export const recipeRouter = new Hono<HonoEnv>();
-
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -91,119 +89,62 @@ const RecipeListQuery = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// GET /recipes
+// Router
 // ---------------------------------------------------------------------------
 
-recipeRouter.get("/recipes", zValidator("query", RecipeListQuery), async (c) => {
-  const { q, tag: filterTagIds, favourite } = c.req.valid("query");
+export const recipeRouter = new Hono<HonoEnv>()
+  .get("/recipes", zValidator("query", RecipeListQuery), async (c) => {
+    const { q, tag: filterTagIds, favourite } = c.req.valid("query");
 
-  const conditions: ReturnType<typeof eq>[] = [];
+    const conditions: ReturnType<typeof eq>[] = [];
 
-  if (q) {
-    conditions.push(
-      or(ilike(recipes.title, `%${q}%`), ilike(recipes.description, `%${q}%`)) as ReturnType<
-        typeof eq
-      >,
-    );
-  }
-
-  if (favourite !== undefined) {
-    conditions.push(eq(recipes.favourite, favourite) as unknown as ReturnType<typeof eq>);
-  }
-
-  // AND tag semantics: recipe must have ALL specified tags
-  if (filterTagIds.length > 0) {
-    const taggedRows = await db
-      .select({ recipeId: recipeTags.recipeId })
-      .from(recipeTags)
-      .where(inArray(recipeTags.tagId, filterTagIds))
-      .groupBy(recipeTags.recipeId)
-      .having(sql`count(distinct ${recipeTags.tagId}) = ${filterTagIds.length}`);
-
-    const ids = taggedRows.map((r) => r.recipeId);
-    if (ids.length === 0) return c.json({ recipes: [] });
-    conditions.push(inArray(recipes.id, ids) as unknown as ReturnType<typeof eq>);
-  }
-
-  const rows = await db
-    .select({ recipe: recipes, tagId: recipeTags.tagId })
-    .from(recipes)
-    .leftJoin(recipeTags, eq(recipes.id, recipeTags.recipeId))
-    .where(conditions.length > 0 ? and(...conditions) : undefined)
-    .orderBy(desc(recipes.updatedAt));
-
-  return c.json({ recipes: groupByRecipe(rows) });
-});
-
-// ---------------------------------------------------------------------------
-// GET /recipes/:id
-// ---------------------------------------------------------------------------
-
-recipeRouter.get("/recipes/:id", async (c) => {
-  const recipe = await fetchFullRecipe(c.req.param("id"));
-  return c.json({ recipe });
-});
-
-// ---------------------------------------------------------------------------
-// POST /recipes
-// ---------------------------------------------------------------------------
-
-recipeRouter.post("/recipes", zValidator("json", RecipeCreate), async (c) => {
-  const body = c.req.valid("json");
-  const recipeId = newId();
-  const now = new Date();
-
-  await db.transaction(async (tx) => {
-    await tx.insert(recipes).values({
-      id: recipeId,
-      title: body.title,
-      description: body.description ?? null,
-      sourceUrl: body.sourceUrl ?? null,
-      imageUrl: body.imageUrl ?? null,
-      baseServings: body.baseServings,
-      prepTimeMinutes: body.prepTimeMinutes ?? null,
-      cookTimeMinutes: body.cookTimeMinutes ?? null,
-      notes: body.notes ?? null,
-      instructions: body.instructions,
-      favourite: body.favourite,
-      createdAt: now,
-      updatedAt: now,
-    });
-
-    if (body.ingredients.length > 0) {
-      await tx.insert(ingredients).values(buildIngredientRows(recipeId, body.ingredients));
+    if (q) {
+      conditions.push(
+        or(ilike(recipes.title, `%${q}%`), ilike(recipes.description, `%${q}%`)) as ReturnType<
+          typeof eq
+        >,
+      );
     }
 
-    if (body.tagIds.length > 0) {
-      await tx.insert(recipeTags).values(body.tagIds.map((tagId) => ({ recipeId, tagId })));
+    if (favourite !== undefined) {
+      conditions.push(eq(recipes.favourite, favourite) as unknown as ReturnType<typeof eq>);
     }
-  });
 
-  const recipe = await fetchFullRecipe(recipeId);
-  const log = c.var.logger;
-  log.info(
-    { recipeId, ingredientCount: body.ingredients.length, tagCount: body.tagIds.length },
-    "recipe created",
-  );
-  return c.json({ recipe }, 201);
-});
+    // AND tag semantics: recipe must have ALL specified tags
+    if (filterTagIds.length > 0) {
+      const taggedRows = await db
+        .select({ recipeId: recipeTags.recipeId })
+        .from(recipeTags)
+        .where(inArray(recipeTags.tagId, filterTagIds))
+        .groupBy(recipeTags.recipeId)
+        .having(sql`count(distinct ${recipeTags.tagId}) = ${filterTagIds.length}`);
 
-// ---------------------------------------------------------------------------
-// PUT /recipes/:id
-// ---------------------------------------------------------------------------
+      const ids = taggedRows.map((r) => r.recipeId);
+      if (ids.length === 0) return c.json({ recipes: [] });
+      conditions.push(inArray(recipes.id, ids) as unknown as ReturnType<typeof eq>);
+    }
 
-recipeRouter.put("/recipes/:id", zValidator("json", RecipeUpdate), async (c) => {
-  const id = c.req.param("id");
-  const body = c.req.valid("json");
-  const now = new Date();
+    const rows = await db
+      .select({ recipe: recipes, tagId: recipeTags.tagId })
+      .from(recipes)
+      .leftJoin(recipeTags, eq(recipes.id, recipeTags.recipeId))
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(recipes.updatedAt));
 
-  await db.transaction(async (tx) => {
-    const [existing] = await tx.select({ id: recipes.id }).from(recipes).where(eq(recipes.id, id));
-    if (!existing) throw new HttpError(404, "NOT_FOUND", "Recipe not found");
+    return c.json({ recipes: groupByRecipe(rows) });
+  })
+  .get("/recipes/:id", async (c) => {
+    const recipe = await fetchFullRecipe(c.req.param("id"));
+    return c.json({ recipe });
+  })
+  .post("/recipes", zValidator("json", RecipeCreate), async (c) => {
+    const body = c.req.valid("json");
+    const recipeId = newId();
+    const now = new Date();
 
-    await tx
-      .update(recipes)
-      .set({
+    await db.transaction(async (tx) => {
+      await tx.insert(recipes).values({
+        id: recipeId,
         title: body.title,
         description: body.description ?? null,
         sourceUrl: body.sourceUrl ?? null,
@@ -214,64 +155,100 @@ recipeRouter.put("/recipes/:id", zValidator("json", RecipeUpdate), async (c) => 
         notes: body.notes ?? null,
         instructions: body.instructions,
         favourite: body.favourite,
+        createdAt: now,
         updatedAt: now,
-      })
+      });
+
+      if (body.ingredients.length > 0) {
+        await tx.insert(ingredients).values(buildIngredientRows(recipeId, body.ingredients));
+      }
+
+      if (body.tagIds.length > 0) {
+        await tx.insert(recipeTags).values(body.tagIds.map((tagId) => ({ recipeId, tagId })));
+      }
+    });
+
+    const recipe = await fetchFullRecipe(recipeId);
+    const log = c.var.logger;
+    log.info(
+      { recipeId, ingredientCount: body.ingredients.length, tagCount: body.tagIds.length },
+      "recipe created",
+    );
+    return c.json({ recipe }, 201);
+  })
+  .put("/recipes/:id", zValidator("json", RecipeUpdate), async (c) => {
+    const id = c.req.param("id");
+    const body = c.req.valid("json");
+    const now = new Date();
+
+    await db.transaction(async (tx) => {
+      const [existing] = await tx
+        .select({ id: recipes.id })
+        .from(recipes)
+        .where(eq(recipes.id, id));
+      if (!existing) throw new HttpError(404, "NOT_FOUND", "Recipe not found");
+
+      await tx
+        .update(recipes)
+        .set({
+          title: body.title,
+          description: body.description ?? null,
+          sourceUrl: body.sourceUrl ?? null,
+          imageUrl: body.imageUrl ?? null,
+          baseServings: body.baseServings,
+          prepTimeMinutes: body.prepTimeMinutes ?? null,
+          cookTimeMinutes: body.cookTimeMinutes ?? null,
+          notes: body.notes ?? null,
+          instructions: body.instructions,
+          favourite: body.favourite,
+          updatedAt: now,
+        })
+        .where(eq(recipes.id, id));
+
+      await tx.delete(ingredients).where(eq(ingredients.recipeId, id));
+      if (body.ingredients.length > 0) {
+        await tx.insert(ingredients).values(buildIngredientRows(id, body.ingredients));
+      }
+
+      await tx.delete(recipeTags).where(eq(recipeTags.recipeId, id));
+      if (body.tagIds.length > 0) {
+        await tx.insert(recipeTags).values(body.tagIds.map((tagId) => ({ recipeId: id, tagId })));
+      }
+    });
+
+    const recipe = await fetchFullRecipe(id);
+    const log = c.var.logger;
+    log.info(
+      { recipeId: id, ingredientCount: body.ingredients.length, tagCount: body.tagIds.length },
+      "recipe updated",
+    );
+    return c.json({ recipe });
+  })
+  .delete("/recipes/:id", async (c) => {
+    const id = c.req.param("id");
+    const result = await db.delete(recipes).where(eq(recipes.id, id)).returning({ id: recipes.id });
+    if (result.length === 0) throw new HttpError(404, "NOT_FOUND", "Recipe not found");
+    const log = c.var.logger;
+    log.info({ recipeId: id }, "recipe deleted");
+    return new Response(null, { status: 204 });
+  })
+  .post("/recipes/:id/favourite", async (c) => {
+    const id = c.req.param("id");
+    const [current] = await db
+      .select({ favourite: recipes.favourite })
+      .from(recipes)
+      .where(eq(recipes.id, id));
+    if (!current) throw new HttpError(404, "NOT_FOUND", "Recipe not found");
+
+    await db
+      .update(recipes)
+      .set({ favourite: !current.favourite, updatedAt: new Date() })
       .where(eq(recipes.id, id));
 
-    await tx.delete(ingredients).where(eq(ingredients.recipeId, id));
-    if (body.ingredients.length > 0) {
-      await tx.insert(ingredients).values(buildIngredientRows(id, body.ingredients));
-    }
-
-    await tx.delete(recipeTags).where(eq(recipeTags.recipeId, id));
-    if (body.tagIds.length > 0) {
-      await tx.insert(recipeTags).values(body.tagIds.map((tagId) => ({ recipeId: id, tagId })));
-    }
+    const recipe = await fetchFullRecipe(id);
+    const log = c.var.logger;
+    log.info({ recipeId: id, favourite: recipe.favourite }, "favourite toggled");
+    return c.json({ recipe });
   });
-
-  const recipe = await fetchFullRecipe(id);
-  const log = c.var.logger;
-  log.info(
-    { recipeId: id, ingredientCount: body.ingredients.length, tagCount: body.tagIds.length },
-    "recipe updated",
-  );
-  return c.json({ recipe });
-});
-
-// ---------------------------------------------------------------------------
-// DELETE /recipes/:id
-// ---------------------------------------------------------------------------
-
-recipeRouter.delete("/recipes/:id", async (c) => {
-  const id = c.req.param("id");
-  const result = await db.delete(recipes).where(eq(recipes.id, id)).returning({ id: recipes.id });
-  if (result.length === 0) throw new HttpError(404, "NOT_FOUND", "Recipe not found");
-  const log = c.var.logger;
-  log.info({ recipeId: id }, "recipe deleted");
-  return new Response(null, { status: 204 });
-});
-
-// ---------------------------------------------------------------------------
-// POST /recipes/:id/favourite  (toggle)
-// ---------------------------------------------------------------------------
-
-recipeRouter.post("/recipes/:id/favourite", async (c) => {
-  const id = c.req.param("id");
-  const [current] = await db
-    .select({ favourite: recipes.favourite })
-    .from(recipes)
-    .where(eq(recipes.id, id));
-  if (!current) throw new HttpError(404, "NOT_FOUND", "Recipe not found");
-
-  await db
-    .update(recipes)
-    .set({ favourite: !current.favourite, updatedAt: new Date() })
-    .where(eq(recipes.id, id));
-
-  const recipe = await fetchFullRecipe(id);
-  const log = c.var.logger;
-  log.info({ recipeId: id, favourite: recipe.favourite }, "favourite toggled");
-  return c.json({ recipe });
-});
 
 export type { RecipeDetail, RecipeListItem, IngredientRead, TagRow };
