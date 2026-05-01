@@ -1,12 +1,16 @@
 {
   "name": "family-recipes",
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "husky": "9.1.7"
+  },
   "private": true,
-  "workspaces": ["packages/*"],
   "scripts": {
     "prepare": "husky",
     "check": "bun run typecheck && bun run lint && bun run test && bun run build",
-    "test": "bun test packages/api && bun run -F web test",
-    "typecheck": "bun run -F web typecheck && bun run -F api typecheck",
+    "mcp": "bun run packages/mcp/src/index.ts",
+    "test": "bun test packages/api && bun test packages/mcp && bun run -F web test",
+    "typecheck": "bun run -F web typecheck && bun run -F api typecheck && bun run -F mcp typecheck",
     "lint": "biome check .",
     "format": "biome format --write .",
     "build": "bun run -F web build && bun run -F api build",
@@ -20,8 +24,5 @@
     "test:integration:run": "DATABASE_URL=postgres://test:test@localhost:5433/test bun run packages/api/scripts/test-integration.ts",
     "test:integration": "bun run test:integration:up && bun run test:integration:run; CODE=$?; bun run test:integration:down; exit $CODE"
   },
-  "devDependencies": {
-    "@biomejs/biome": "1.9.4",
-    "husky": "9.1.7"
-  }
+  "workspaces": ["packages/*"]
 }
