@@ -16,10 +16,11 @@ Plans for specific features live at `.cursor/plans/*.plan.md`. Read the relevant
 - Database: PostgreSQL.
 - Data layer: Drizzle with the `postgres` (postgres-js) driver. UUIDv7 ids.
 - Migrations: run on API startup behind a Postgres advisory lock. Register new migrations in `packages/api/drizzle/meta/_journal.json`.
-- Validation/shared contracts: Zod schemas live in `packages/api/src/schemas/index.ts` and are re-exported to the web app via the `@api/schemas` path alias. Do not create a `packages/shared` workspace package.
+- Validation/shared contracts: Zod schemas live in `packages/api/src/schemas/index.ts` and are re-exported to the web app via the `@api/schemas` path alias. Do not create a `packages/shared` workspace package. The MCP server at `packages/mcp` imports these schemas directly.
 - Lint/format: Biome.
 - Pre-commit hooks: Husky.
 - Tests: `bun test` (no Vitest).
+- All packages (`packages/api`, `packages/web`, `packages/mcp`) follow the same TypeScript, Bun, and Biome conventions.
 
 ## Product Context
 
@@ -37,6 +38,7 @@ The app helps a family track, plan, and cook recipes. Current features:
 - Dark/light theme toggle.
 - JSON export endpoint for backup.
 - Hot-linked recipe images; no user-uploaded photos.
+- MCP server at `packages/mcp` — exposes all API operations as 16 tools and 7 resources for AI agent integration.
 
 Authentication is intentionally out of scope. Assume private network or household-only deployment.
 

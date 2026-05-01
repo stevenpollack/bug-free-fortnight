@@ -55,6 +55,7 @@ The recipe importer is restricted to:
 ```text
 packages/
   api/   # Hono API on Bun, serves the built web app in production
+  mcp/   # MCP server for AI agent integration
   web/   # React + Vite SPA (installable PWA)
 infra/
   docker/  # Dockerfile and Docker Compose
@@ -102,6 +103,88 @@ The CI pipeline (`.github/workflows/ci.yml`) runs both gates on every push and p
 2. `integration` job — starts the test Compose stack, runs integration tests, tears down.
 
 The integration Postgres uses hardcoded credentials (`test`/`test`) on port 5433 and runs with a `tmpfs` volume so each run starts clean. **These credentials are for automated testing only and must never be used in production.**
+
+## MCP Server
+
+The MCP (Model Context Protocol) server exposes the family-recipes API to AI agents and tools that support MCP clients (Claude Desktop, Cursor, etc.).
+
+### Running the server
+
+```bash
+cd packages/mcp
+bun start          # Production mode
+# or
+bun run dev        # Development mode with auto-reload
+```
+
+The server runs as a Streamable HTTP server on port 3002 by default.
+
+### Configuration
+
+Set these environment variables:
+
+- `API_BASE` (default: `http://localhost:3001`) — URL of the family-recipes API.
+- `MCP_PORT` (default: `3002`) — Port for the MCP server.
+- `MCP_BEARER_TOKEN` (optional) — Bearer token for API authentication. If not set, requests are unauthenticated.
+
+### Client connections
+
+Any MCP-compatible client connects to `http://localhost:3002/mcp` and automatically discovers all 16 tools and 7 resources via the standard `tools/list` / `resources/list` handshake. No manual configuration of individual tools is needed.
+
+### Claude Desktop
+
+Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows). Add the `family-recipes` entry under `mcpServers`:
+
+```json
+{
+  "mcpServers": {
+    "family-recipes": {
+      "url": "http://localhost:3002/mcp"
+    }
+  }
+}
+```
+
+Restart Claude Desktop. A tools icon will appear in the chat input once the server is connected.
+
+If `MCP_BEARER_TOKEN` is set on the server, add it as a header:
+
+```json
+{
+  "mcpServers": {
+    "family-recipes": {
+      "url": "http://localhost:3002/mcp",
+      "headers": {
+        "Authorization": "Bearer your-token-here"
+      }
+    }
+  }
+}
+```
+
+### VS Code (GitHub Copilot)
+
+Create or edit `.vscode/mcp.json` in this repo (it can be committed to share the config with the team):
+
+```json
+{
+  "servers": {
+    "family-recipes": {
+      "type": "http",
+      "url": "http://localhost:3002/mcp"
+    }
+  }
+}
+```
+
+Alternatively, use the Command Palette → **MCP: Add Server** and paste the URL when prompted. VS Code will write the entry for you.
+
+### Testing
+
+```bash
+cd packages/mcp
+bun test
+```
 
 ## Self-Hosting
 
