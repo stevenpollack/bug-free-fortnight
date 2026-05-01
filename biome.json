@@ -33,11 +33,9 @@
       "dist",
       ".husky",
       "bun.lockb",
-      "packages/web/node_modules",
-      "packages/api/node_modules",
-      "packages/web/tsconfig*.json",
-      "packages/api/tsconfig*.json",
-      "packages/api/drizzle",
+      "**/node_modules",
+      "**/tsconfig*.json",
+      "**/drizzle",
       ".claude/worktrees"
     ]
   }
