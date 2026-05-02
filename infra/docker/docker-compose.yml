@@ -30,7 +30,7 @@ services:
   app:
     build:
       context: ../..
-      dockerfile: infra/docker/Dockerfile
+      dockerfile: Dockerfile
       target: api
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
