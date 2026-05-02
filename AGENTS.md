@@ -40,7 +40,7 @@ The app helps a family track, plan, and cook recipes. Current features:
 - Hot-linked recipe images; no user-uploaded photos.
 - MCP server at `packages/mcp` — exposes all API operations as 16 tools and 7 resources for AI agent integration.
 
-Authentication is intentionally out of scope. Assume private network or household-only deployment.
+Authentication: browser sessions are handled by Authentik forward-auth at the Traefik layer. MCP clients authenticate via OAuth 2.1 PKCE — the app acts as an OIDC relay, delegating real login to Authentik. Set AUTHENTIK_BASE_URL, AUTHENTIK_CLIENT_ID, AUTHENTIK_CLIENT_SECRET, and JWT_SECRET in production. Leave AUTHENTIK_CLIENT_ID unset in dev/test to skip auth.
 
 ## Importer Safety Rules
 

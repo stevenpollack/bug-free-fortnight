@@ -449,7 +449,7 @@ describe("OAuth flow", () => {
     expect(data.redirect_uris).toContain("http://localhost:3000/callback");
   });
 
-  test("GET /authorize redirects with code and preserves state", async () => {
+  test("GET /authorize redirects with code and preserves state (dev/stub mode — no AUTHENTIK_CLIENT_ID set)", async () => {
     const redirectUri = "http://localhost:3000/callback";
     const state = "test-state-xyz";
     const url = new URL("http://localhost/authorize");

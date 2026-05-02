@@ -1,5 +1,6 @@
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { Hono } from "hono";
+import { bearerAuth } from "../middleware/bearerAuth";
 import { mcpLogger } from "./logging";
 import { oauthRouter } from "./oauth";
 import { createMcpServer } from "./server";
@@ -14,7 +15,7 @@ async function handleMcp(req: Request): Promise<Response> {
 
 export const mcpRouter = new Hono()
   .route("/", oauthRouter)
-  .on(["GET", "POST", "DELETE"], "/mcp", async (c) => {
+  .on(["GET", "POST", "DELETE"], "/mcp", bearerAuth, async (c) => {
     const rpcMethod = await peekRpcMethod(c.req.raw);
     mcpLogger.debug({ method: c.req.method, rpcMethod }, "mcp request");
     return handleMcp(c.req.raw);
