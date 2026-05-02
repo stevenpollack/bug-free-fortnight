@@ -3,6 +3,7 @@ import { serveStatic } from "hono/bun";
 import { cors } from "hono/cors";
 import { HttpError } from "./errors";
 import { logger } from "./logger";
+import { mcpRouter } from "./mcp/router";
 import { requestLogger } from "./middleware/requestLogger";
 import { anthropicKeyRouter } from "./routes/anthropicKey";
 import { configRouter } from "./routes/config";
@@ -49,6 +50,7 @@ export type AppType = typeof typedApp;
 
 export function createApp({ webDistDir }: AppOptions = {}) {
   const app = new Hono<HonoEnv>();
+  const corsOrigins = process.env.CORS_ORIGIN?.split(",") ?? ["http://localhost:5173"];
 
   // CORS is only needed in development (dev web server runs on a different port).
   // In production the API serves the SPA same-origin, so no CORS header is required.
@@ -56,7 +58,7 @@ export function createApp({ webDistDir }: AppOptions = {}) {
     app.use(
       "/api/*",
       cors({
-        origin: process.env.CORS_ORIGIN?.split(",") ?? ["http://localhost:5173"],
+        origin: corsOrigins,
         allowMethods: ["OPTIONS", "GET", "POST", "PUT", "PATCH", "DELETE"],
       }),
     );
@@ -86,6 +88,9 @@ export function createApp({ webDistDir }: AppOptions = {}) {
   app.route("/api", schemaRouter);
   app.route("/api", shoppingListRouter);
   app.route("/api", tagRouter);
+
+  // MCP server at /mcp; OAuth endpoints at /.well-known/*, /register, /authorize, /token
+  app.route("/", mcpRouter);
 
   if (webDistDir) {
     // Serve static assets (JS, CSS, images, etc.) from the built SPA directory.
