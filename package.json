@@ -22,9 +22,7 @@
     "test:integration:down": "docker compose -f infra/docker/docker-compose.test.yml down -v",
     "test:integration:run": "DATABASE_URL=postgres://test:test@localhost:5433/test bun run packages/api/scripts/test-integration.ts",
     "test:integration": "bun run test:integration:up && bun run test:integration:run; CODE=$?; bun run test:integration:down; exit $CODE",
-    "deploy": "bash scripts/deploy.sh",
     "prod:up": "NODE_ENV=production docker compose --env-file .env -f infra/docker/docker-compose.yml up -d --build --remove-orphans",
-    "prod:deploy": "NODE_ENV=production bun run prod:up && docker image prune -f",
     "prod:down": "NODE_ENV=production docker compose --env-file .env -f infra/docker/docker-compose.yml down",
     "prod:logs": "NODE_ENV=production docker compose --env-file .env -f infra/docker/docker-compose.yml logs -f"
   },
