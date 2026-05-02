@@ -1,83 +1,19 @@
 import { zValidator } from "@hono/zod-validator";
-import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { z } from "zod";
-import { db } from "../db/client";
-import { ingredients, recipeTags, recipes, type tags } from "../db/schema";
-import { newId } from "../db/uuid";
-import { HttpError } from "../errors";
-import { buildIngredientRows, parseNumeric } from "../lib/utils";
 import { RecipeCreate, RecipeUpdate } from "../schemas/index";
+import {
+  createRecipe,
+  deleteRecipe,
+  fetchFullRecipe,
+  searchRecipes,
+  toggleFavourite,
+  updateRecipe,
+} from "../services/recipes";
 import type { HonoEnv } from "../types";
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-type RecipeRow = typeof recipes.$inferSelect;
-type IngredientRow = typeof ingredients.$inferSelect;
-type TagRow = typeof tags.$inferSelect;
-
-interface IngredientRead extends Omit<IngredientRow, "quantity"> {
-  quantity: number | null;
-}
-
-interface RecipeListItem extends RecipeRow {
-  tagIds: string[];
-}
-
-interface RecipeDetail extends RecipeRow {
-  tagIds: string[];
-  ingredients: IngredientRead[];
-}
-
-function toIngredientRead(row: IngredientRow): IngredientRead {
-  return { ...row, quantity: parseNumeric(row.quantity as unknown as string) };
-}
-
-/** Group a flat join result (recipe + optional tagId) into a map keyed by recipeId. */
-function groupByRecipe(rows: Array<{ recipe: RecipeRow; tagId: string | null }>): RecipeListItem[] {
-  const map = new Map<string, RecipeListItem>();
-  for (const row of rows) {
-    const existing = map.get(row.recipe.id);
-    if (existing) {
-      if (row.tagId) existing.tagIds.push(row.tagId);
-    } else {
-      map.set(row.recipe.id, { ...row.recipe, tagIds: row.tagId ? [row.tagId] : [] });
-    }
-  }
-  return [...map.values()];
-}
-
-async function fetchFullRecipe(id: string): Promise<RecipeDetail> {
-  const [recipe] = await db.select().from(recipes).where(eq(recipes.id, id));
-  if (!recipe) throw new HttpError(404, "NOT_FOUND", "Recipe not found");
-
-  const ingredientRows = await db
-    .select()
-    .from(ingredients)
-    .where(eq(ingredients.recipeId, id))
-    .orderBy(ingredients.displayOrder);
-
-  const tagRows = await db
-    .select({ tagId: recipeTags.tagId })
-    .from(recipeTags)
-    .where(eq(recipeTags.recipeId, id));
-
-  return {
-    ...recipe,
-    tagIds: tagRows.map((r) => r.tagId),
-    ingredients: ingredientRows.map(toIngredientRead),
-  };
-}
-
-// ---------------------------------------------------------------------------
-// Query schema for GET /recipes
-// ---------------------------------------------------------------------------
 
 const RecipeListQuery = z.object({
   q: z.string().optional(),
-  // `tag` may appear multiple times; coerce to array
   tag: z
     .union([z.string(), z.array(z.string())])
     .optional()
@@ -88,50 +24,11 @@ const RecipeListQuery = z.object({
     .transform((v) => (v === "true" ? true : v === "false" ? false : undefined)),
 });
 
-// ---------------------------------------------------------------------------
-// Router
-// ---------------------------------------------------------------------------
-
 export const recipeRouter = new Hono<HonoEnv>()
   .get("/recipes", zValidator("query", RecipeListQuery), async (c) => {
-    const { q, tag: filterTagIds, favourite } = c.req.valid("query");
-
-    const conditions: ReturnType<typeof eq>[] = [];
-
-    if (q) {
-      conditions.push(
-        or(ilike(recipes.title, `%${q}%`), ilike(recipes.description, `%${q}%`)) as ReturnType<
-          typeof eq
-        >,
-      );
-    }
-
-    if (favourite !== undefined) {
-      conditions.push(eq(recipes.favourite, favourite) as unknown as ReturnType<typeof eq>);
-    }
-
-    // AND tag semantics: recipe must have ALL specified tags
-    if (filterTagIds.length > 0) {
-      const taggedRows = await db
-        .select({ recipeId: recipeTags.recipeId })
-        .from(recipeTags)
-        .where(inArray(recipeTags.tagId, filterTagIds))
-        .groupBy(recipeTags.recipeId)
-        .having(sql`count(distinct ${recipeTags.tagId}) = ${filterTagIds.length}`);
-
-      const ids = taggedRows.map((r) => r.recipeId);
-      if (ids.length === 0) return c.json({ recipes: [] });
-      conditions.push(inArray(recipes.id, ids) as unknown as ReturnType<typeof eq>);
-    }
-
-    const rows = await db
-      .select({ recipe: recipes, tagId: recipeTags.tagId })
-      .from(recipes)
-      .leftJoin(recipeTags, eq(recipes.id, recipeTags.recipeId))
-      .where(conditions.length > 0 ? and(...conditions) : undefined)
-      .orderBy(desc(recipes.updatedAt));
-
-    return c.json({ recipes: groupByRecipe(rows) });
+    const { q, tag: tagIds, favourite } = c.req.valid("query");
+    const recipes = await searchRecipes({ q, tagIds, favourite });
+    return c.json({ recipes });
   })
   .get("/recipes/:id", async (c) => {
     const recipe = await fetchFullRecipe(c.req.param("id"));
@@ -139,39 +36,14 @@ export const recipeRouter = new Hono<HonoEnv>()
   })
   .post("/recipes", zValidator("json", RecipeCreate), async (c) => {
     const body = c.req.valid("json");
-    const recipeId = newId();
-    const now = new Date();
-
-    await db.transaction(async (tx) => {
-      await tx.insert(recipes).values({
-        id: recipeId,
-        title: body.title,
-        description: body.description ?? null,
-        sourceUrl: body.sourceUrl ?? null,
-        imageUrl: body.imageUrl ?? null,
-        baseServings: body.baseServings,
-        prepTimeMinutes: body.prepTimeMinutes ?? null,
-        cookTimeMinutes: body.cookTimeMinutes ?? null,
-        notes: body.notes ?? null,
-        instructions: body.instructions,
-        favourite: body.favourite,
-        createdAt: now,
-        updatedAt: now,
-      });
-
-      if (body.ingredients.length > 0) {
-        await tx.insert(ingredients).values(buildIngredientRows(recipeId, body.ingredients));
-      }
-
-      if (body.tagIds.length > 0) {
-        await tx.insert(recipeTags).values(body.tagIds.map((tagId) => ({ recipeId, tagId })));
-      }
-    });
-
-    const recipe = await fetchFullRecipe(recipeId);
+    const recipe = await createRecipe(body);
     const log = c.var.logger;
     log.info(
-      { recipeId, ingredientCount: body.ingredients.length, tagCount: body.tagIds.length },
+      {
+        recipeId: recipe.id,
+        ingredientCount: body.ingredients.length,
+        tagCount: body.tagIds.length,
+      },
       "recipe created",
     );
     return c.json({ recipe }, 201);
@@ -179,44 +51,7 @@ export const recipeRouter = new Hono<HonoEnv>()
   .put("/recipes/:id", zValidator("json", RecipeUpdate), async (c) => {
     const id = c.req.param("id");
     const body = c.req.valid("json");
-    const now = new Date();
-
-    await db.transaction(async (tx) => {
-      const [existing] = await tx
-        .select({ id: recipes.id })
-        .from(recipes)
-        .where(eq(recipes.id, id));
-      if (!existing) throw new HttpError(404, "NOT_FOUND", "Recipe not found");
-
-      await tx
-        .update(recipes)
-        .set({
-          title: body.title,
-          description: body.description ?? null,
-          sourceUrl: body.sourceUrl ?? null,
-          imageUrl: body.imageUrl ?? null,
-          baseServings: body.baseServings,
-          prepTimeMinutes: body.prepTimeMinutes ?? null,
-          cookTimeMinutes: body.cookTimeMinutes ?? null,
-          notes: body.notes ?? null,
-          instructions: body.instructions,
-          favourite: body.favourite,
-          updatedAt: now,
-        })
-        .where(eq(recipes.id, id));
-
-      await tx.delete(ingredients).where(eq(ingredients.recipeId, id));
-      if (body.ingredients.length > 0) {
-        await tx.insert(ingredients).values(buildIngredientRows(id, body.ingredients));
-      }
-
-      await tx.delete(recipeTags).where(eq(recipeTags.recipeId, id));
-      if (body.tagIds.length > 0) {
-        await tx.insert(recipeTags).values(body.tagIds.map((tagId) => ({ recipeId: id, tagId })));
-      }
-    });
-
-    const recipe = await fetchFullRecipe(id);
+    const recipe = await updateRecipe(id, body);
     const log = c.var.logger;
     log.info(
       { recipeId: id, ingredientCount: body.ingredients.length, tagCount: body.tagIds.length },
@@ -226,29 +61,17 @@ export const recipeRouter = new Hono<HonoEnv>()
   })
   .delete("/recipes/:id", async (c) => {
     const id = c.req.param("id");
-    const result = await db.delete(recipes).where(eq(recipes.id, id)).returning({ id: recipes.id });
-    if (result.length === 0) throw new HttpError(404, "NOT_FOUND", "Recipe not found");
+    await deleteRecipe(id);
     const log = c.var.logger;
     log.info({ recipeId: id }, "recipe deleted");
     return new Response(null, { status: 204 });
   })
   .post("/recipes/:id/favourite", async (c) => {
     const id = c.req.param("id");
-    const [current] = await db
-      .select({ favourite: recipes.favourite })
-      .from(recipes)
-      .where(eq(recipes.id, id));
-    if (!current) throw new HttpError(404, "NOT_FOUND", "Recipe not found");
-
-    await db
-      .update(recipes)
-      .set({ favourite: !current.favourite, updatedAt: new Date() })
-      .where(eq(recipes.id, id));
-
-    const recipe = await fetchFullRecipe(id);
+    const recipe = await toggleFavourite(id);
     const log = c.var.logger;
     log.info({ recipeId: id, favourite: recipe.favourite }, "favourite toggled");
     return c.json({ recipe });
   });
 
-export type { RecipeDetail, RecipeListItem, IngredientRead, TagRow };
+export type { RecipeDetail, RecipeListItem, IngredientRead } from "../services/recipes";
